@@ -28,6 +28,7 @@ namespace lightclip {
 
 		public static void Start() {
 			CreateRecorder();
+			Console.WriteLine("Hi");
 
 			foreach (Settings.SettingDefinition setting in SettingsData.Data[1].List) {
 				Properties.Settings.Default.PropertyChanged += (object _, PropertyChangedEventArgs e) => {
@@ -36,12 +37,11 @@ namespace lightclip {
 				};
 			}
 
-			string curMonitor = ExternMonitor.GetCurMonitor();
 			monitorCheckTimer = new Timer((_) => {
 				if (source == null) return;
 				if (!(source is DisplayRecordingSource display)) return;
 				string newMonitor = ExternMonitor.GetCurMonitor() ?? DisplayRecordingSource.MainMonitor.DeviceName;
-				if (newMonitor == curMonitor) return;
+				if (display.DeviceName == newMonitor) return;
 
 				display.DeviceName = newMonitor;
 				rec.GetDynamicOptionsBuilder().SetUpdatedRecordingSource(display).Apply();
@@ -155,7 +155,7 @@ namespace lightclip {
 			handler = (_, _) => {
 				if (stream.TotalFrameCount >= intendedFrameCount) {
 					calls++;
-					if (calls >= 5) { // magic offset. idk it works kinda
+					if (calls >= Math.Ceiling(stream.FrameCount / settings.Framerate * 0.1)) { // magic offset. idk it works kinda
 						stream.OnChunkWritten -= handler;
 						task.SetResult();
 					}
