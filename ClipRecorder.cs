@@ -81,11 +81,10 @@ namespace lightclip {
 					RecordingSources = new List<RecordingSourceBase>() { source }
 				},
 				OutputOptions = new OutputOptions() {
-					OutputFrameSize = source.OutputSize,
+					OutputFrameSize = getResolution(),
 					Stretch = StretchMode.Fill
 				}
 			};
-			
 
 			rec = Recorder.CreateRecorder(options);
 			rec.Record(stream);
@@ -118,6 +117,42 @@ namespace lightclip {
 				default:
 					return AudioBitrate.bitrate_128kbps;
 			}
+		}
+
+		private static ScreenSize getBaseResolution() {
+			Rect monitor = ExternMonitor.GetMonitorSize(ExternMonitor.GetMainMonitor());
+			return new ScreenSize(monitor.Width, monitor.Height);
+		}
+
+		private static ScreenSize getResolution() {
+			double maxResolution = 1;
+			ScreenSize baseResolution = getBaseResolution();
+			switch (settings.ClipResolution) {
+				default:
+				case "Source":
+					return baseResolution;
+				case "1080p":
+					maxResolution = 1080;
+					break;
+				case "720p":
+					maxResolution = 720;
+					break;
+				case "480p":
+					maxResolution = 480;
+					break;
+				case "360p":
+					maxResolution = 360;
+					break;
+				case "240p":
+					maxResolution = 240;
+					break;
+				case "144p":
+					maxResolution = 144;
+					break;
+			}
+
+			double scaling = Math.Min(1, maxResolution / Math.Min(baseResolution.Width, baseResolution.Height));
+			return new ScreenSize((int)(baseResolution.Width * scaling), (int)(baseResolution.Height * scaling));
 		}
 
 		public async static Task EncodeClip(string path) {

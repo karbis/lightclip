@@ -42,7 +42,7 @@ namespace lightclip {
 
 			Rect size = ExternMonitor.GetMonitorSize(ExternMonitor.GetMonitorFromWindow(notif));
 			notif.Left = size.Width - notif.Width - 10;
-			notif.Top = size.Height - notif.Height - 10;
+			notif.Top = size.Height - notif.Height - 10 - 40;
 
 			notif.CloseButton.Click += (_, _) => {
 				notif.Close();

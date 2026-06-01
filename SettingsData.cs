@@ -88,7 +88,14 @@ namespace lightclip {
 						Type = new DropdownSettingType() {
 							Values = ["96 kbps", "128 kbps", "160 kbps", "192 kbps"]
 						}
-					}
+					},
+					new SettingDefinition() {
+						DisplayName = "Video resolution",
+						Name = "ClipResolution",
+						Type = new DropdownSettingType() {
+							Values = ["Source", "1080p", "720p", "480p", "360p", "240p", "144p"]
+						}
+					},
 				}
 			}
 		};

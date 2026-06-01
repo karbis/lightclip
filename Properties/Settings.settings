@@ -26,5 +26,8 @@
     <Setting Name="CopyToClipboard" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
+    <Setting Name="ClipResolution" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Source</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

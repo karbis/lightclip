@@ -31,6 +31,7 @@ namespace lightclip {
 
 		const uint MONITOR_DEFAULTTONEAREST = 2;
 		const int CCHDEVICENAME = 32;
+		const uint MONITOR_DEFAULTTOPRIMARY = 0x00000001;
 
 		[StructLayout(LayoutKind.Sequential)]
 		class MONITORINFOEX {
@@ -74,7 +75,7 @@ namespace lightclip {
 
 			MONITORINFOEX info = new MONITORINFOEX();
 			if (GetMonitorInfo(monitor, info)) {
-				return new Rect(0, 0, info.rcWork.Right - info.rcWork.Left, info.rcWork.Bottom - info.rcWork.Top);
+				return new Rect(0, 0, info.rcMonitor.Right - info.rcMonitor.Left, info.rcMonitor.Bottom - info.rcMonitor.Top);
 			}
 
 			return Rect.Empty;
@@ -82,6 +83,10 @@ namespace lightclip {
 
 		public static IntPtr GetMonitorFromWindow(Window window) {
 			return MonitorFromWindow(new WindowInteropHelper(window).Handle, MONITOR_DEFAULTTONEAREST);
+		}
+
+		public static IntPtr GetMainMonitor() {
+			return MonitorFromWindow(IntPtr.Zero, MONITOR_DEFAULTTOPRIMARY);
 		}
 	}
 }

@@ -100,6 +100,7 @@ namespace lightclip {
 					OpenFolderDialog dialog = new OpenFolderDialog();
 					dialog.Title = "Select directory";
 					dialog.Multiselect = false;
+					dialog.DefaultDirectory = (string)Properties.Settings.Default[setting.Name];
 					
 					if (dialog.ShowDialog(this) == true) {
 						setSetting(dialog.FolderName);

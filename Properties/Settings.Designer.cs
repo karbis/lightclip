@@ -118,5 +118,17 @@ namespace lightclip.Properties {
                 this["CopyToClipboard"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Source")]
+        public string ClipResolution {
+            get {
+                return ((string)(this["ClipResolution"]));
+            }
+            set {
+                this["ClipResolution"] = value;
+            }
+        }
     }
 }
