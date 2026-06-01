@@ -31,7 +31,7 @@ namespace lightclip {
 			};
 
 			icon = new TaskbarIcon();
-			icon.IconSource = new BitmapImage(new Uri("icon.ico", UriKind.Relative));
+			icon.IconSource = new BitmapImage(new Uri("Properties/icon.ico", UriKind.Relative));
 			icon.ToolTipText = "Lightclip";
 
 			ContextMenu menu = new ContextMenu();
