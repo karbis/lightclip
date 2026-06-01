@@ -1,0 +1,30 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="lightclip.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="OutputDirectory" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="Keybind" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Ctrl + Alt + G</Value>
+    </Setting>
+    <Setting Name="Bitrate" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">8000</Value>
+    </Setting>
+    <Setting Name="Framerate" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">30</Value>
+    </Setting>
+    <Setting Name="ClipLength" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">30</Value>
+    </Setting>
+    <Setting Name="AudioBitrate" Type="System.String" Scope="User">
+      <Value Profile="(Default)">128 kbps</Value>
+    </Setting>
+    <Setting Name="ShowNotification" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="CopyToClipboard" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
