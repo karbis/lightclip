@@ -25,7 +25,6 @@ namespace lightclip {
 		static Properties.Settings settings = Properties.Settings.Default;
 		static RecordingSourceBase source = null;
 		static Timer monitorCheckTimer = null;
-		static long startTime;
 
 		public static void Start() {
 			CreateRecorder();
@@ -37,11 +36,6 @@ namespace lightclip {
 					CreateRecorder();
 				};
 			}
-
-			SystemEvents.PowerModeChanged += powerModeChanged;
-			Application.Current.Exit += (_, _) => {
-				SystemEvents.PowerModeChanged -= powerModeChanged;
-			};
 
 			monitorCheckTimer = new Timer((_) => {
 				if (source == null) return;
@@ -99,13 +93,6 @@ namespace lightclip {
 			rec = Recorder.CreateRecorder(options);
 			rec.Record(stream);
 
-			EventHandler startedHandler = null;
-			startedHandler = (_, _) => {
-				startTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-				stream.OnChunkWritten -= startedHandler;
-			};
-			stream.OnChunkWritten += startedHandler;
-
 			stream.OnUnexpectedDisposal += (_, _) => {
 				rec.Dispose();
 				CreateRecorder();
@@ -146,18 +133,15 @@ namespace lightclip {
 			}
 
 			// wait for a couple more chunks of data to be added
-			int intendedFrameCount = (int)((DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - startTime) / 1000 * settings.Framerate);
 			TaskCompletionSource task = new TaskCompletionSource();
 			EventHandler handler = null;
 
 			byte calls = 0;
 			handler = (_, _) => {
-				if (stream.TotalFrameCount >= intendedFrameCount) {
-					calls++;
-					if (calls >= Math.Ceiling(stream.FrameCount / settings.Framerate * 0.1)) { // magic offset. idk it works kinda
-						stream.OnChunkWritten -= handler;
-						task.SetResult();
-					}
+				calls++;
+				if (calls >= Math.Ceiling(stream.FrameCount / settings.Framerate * 0.1) + 1) { // magic offset. idk it works kinda
+					stream.OnChunkWritten -= handler;
+					task.SetResult();
 				}
 			};
 			stream.OnChunkWritten += handler;
@@ -185,13 +169,6 @@ namespace lightclip {
 			DateTime now = DateTime.Now;
 			return now.Year + "-" + now.Month.ToString().PadLeft(2, '0') + "-" + now.Day.ToString().PadLeft(2, '0') + " "
 				+ now.Hour + "-" + now.Minute.ToString().PadLeft(2, '0') + "-" + now.Second.ToString().PadLeft(2, '0');
-		}
-
-		private static void powerModeChanged(object _, PowerModeChangedEventArgs e) {
-			if (e.Mode == PowerModes.Resume) {
-				startTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - (long)(stream.TotalFrameCount / (double)settings.Framerate * 1000);
-				// bug fix. sleeping stops the recording
-			}
 		}
 	}
 }
