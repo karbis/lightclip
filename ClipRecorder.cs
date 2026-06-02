@@ -15,6 +15,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using FFMpegCore;
 using FFMpegCore.Pipes;
+using Microsoft.Win32;
 using ScreenRecorderLib;
 
 namespace lightclip {
@@ -28,14 +29,19 @@ namespace lightclip {
 
 		public static void Start() {
 			CreateRecorder();
-			Console.WriteLine("Hi");
 
 			foreach (Settings.SettingDefinition setting in SettingsData.Data[1].List) {
+				if (setting.Type is Settings.SeperatorSettingType) continue;
 				Properties.Settings.Default.PropertyChanged += (object _, PropertyChangedEventArgs e) => {
 					if (e.PropertyName != setting.Name) return;
 					CreateRecorder();
 				};
 			}
+
+			SystemEvents.PowerModeChanged += powerModeChanged;
+			Application.Current.Exit += (_, _) => {
+				SystemEvents.PowerModeChanged -= powerModeChanged;
+			};
 
 			monitorCheckTimer = new Timer((_) => {
 				if (source == null) return;
@@ -66,35 +72,39 @@ namespace lightclip {
 					Framerate = settings.Framerate,
 					IsFragmentedMp4Enabled = true,
 					Bitrate = settings.Bitrate * 1000,
+					Quality = settings.VideoQualityPercent,
 					Encoder = new H264VideoEncoder() {
 						EncoderProfile = H264Profile.Main,
-						BitrateMode = H264BitrateControlMode.CBR
-					}
+						BitrateMode = ClipSettings.GetVideoBitrateType()
+					},
 				},
 				AudioOptions = new AudioOptions() {
 					IsAudioEnabled = true,
 					IsOutputDeviceEnabled = true,
-					Bitrate = stringToBitrate(settings.AudioBitrate),
+					IsInputDeviceEnabled = settings.MicrophoneInputDevice != "None",
+					AudioInputDevice = ClipSettings.GetInputDevice(),
+					Bitrate = ClipSettings.GetAudioBitrate(),
 					Channels = AudioChannels.Stereo
 				},
 				SourceOptions = new SourceOptions() {
 					RecordingSources = new List<RecordingSourceBase>() { source }
 				},
 				OutputOptions = new OutputOptions() {
-					OutputFrameSize = getResolution(),
+					OutputFrameSize = ClipSettings.GetResolution(getBaseResolution()),
 					Stretch = StretchMode.Fill
 				}
 			};
 
+
 			rec = Recorder.CreateRecorder(options);
 			rec.Record(stream);
 
-			bool started = false;
-			stream.OnChunkWritten += (_, _) => {
-				if (started) return;
-				started = true;
+			EventHandler startedHandler = null;
+			startedHandler = (_, _) => {
 				startTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+				stream.OnChunkWritten -= startedHandler;
 			};
+			stream.OnChunkWritten += startedHandler;
 
 			stream.OnUnexpectedDisposal += (_, _) => {
 				rec.Dispose();
@@ -104,55 +114,9 @@ namespace lightclip {
 			return rec;
 		}
 
-		private static AudioBitrate stringToBitrate(string name) {
-			switch (name) {
-				case "96 kbps":
-					return AudioBitrate.bitrate_96kbps;
-				case "128 kbps":
-					return AudioBitrate.bitrate_128kbps;
-				case "160 kbps":
-					return AudioBitrate.bitrate_160kbps;
-				case "192 kbps":
-					return AudioBitrate.bitrate_192kbps;
-				default:
-					return AudioBitrate.bitrate_128kbps;
-			}
-		}
-
 		private static ScreenSize getBaseResolution() {
 			Rect monitor = ExternMonitor.GetMonitorSize(ExternMonitor.GetMainMonitor());
 			return new ScreenSize(monitor.Width, monitor.Height);
-		}
-
-		private static ScreenSize getResolution() {
-			double maxResolution = 1;
-			ScreenSize baseResolution = getBaseResolution();
-			switch (settings.ClipResolution) {
-				default:
-				case "Source":
-					return baseResolution;
-				case "1080p":
-					maxResolution = 1080;
-					break;
-				case "720p":
-					maxResolution = 720;
-					break;
-				case "480p":
-					maxResolution = 480;
-					break;
-				case "360p":
-					maxResolution = 360;
-					break;
-				case "240p":
-					maxResolution = 240;
-					break;
-				case "144p":
-					maxResolution = 144;
-					break;
-			}
-
-			double scaling = Math.Min(1, maxResolution / Math.Min(baseResolution.Width, baseResolution.Height));
-			return new ScreenSize((int)(baseResolution.Width * scaling), (int)(baseResolution.Height * scaling));
 		}
 
 		public async static Task EncodeClip(string path) {
@@ -211,7 +175,7 @@ namespace lightclip {
 				Clipboard.SetFileDropList(new System.Collections.Specialized.StringCollection() { path });
 			}
 			if (notif != null) {
-				notif.Label.Text = $"Clipped {settings.ClipLength} seconds";
+				notif.Label.Text = $"Clipped {Math.Round(stream.FrameCount / (double)settings.Framerate)} seconds";
 				notif.StartFadeout();
 				notif = null;
 			}
@@ -221,6 +185,13 @@ namespace lightclip {
 			DateTime now = DateTime.Now;
 			return now.Year + "-" + now.Month.ToString().PadLeft(2, '0') + "-" + now.Day.ToString().PadLeft(2, '0') + " "
 				+ now.Hour + "-" + now.Minute.ToString().PadLeft(2, '0') + "-" + now.Second.ToString().PadLeft(2, '0');
+		}
+
+		private static void powerModeChanged(object _, PowerModeChangedEventArgs e) {
+			if (e.Mode == PowerModes.Resume) {
+				startTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - (long)(stream.TotalFrameCount / (double)settings.Framerate * 1000);
+				// bug fix. sleeping stops the recording
+			}
 		}
 	}
 }

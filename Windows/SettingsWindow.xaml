@@ -3,9 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:lightclip"
+        xmlns:local="clr-namespace:lightclip" xmlns:Windows="clr-namespace:lightclip.Windows"
         mc:Ignorable="d"
-        Title="Settings" Height="250" Width="450" Icon="/Properties/icon.ico" MinWidth="400" MinHeight="200" WindowStartupLocation="CenterScreen">
+        Title="Settings" Height="250" Width="475" Icon="/Properties/icon.ico" MinWidth="400" MinHeight="200" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="140"/>
@@ -38,11 +38,18 @@
                                 <Setter Property="HorizontalAlignment" Value="Right"/>
                                 <Setter Property="VerticalAlignment" Value="Center"/>
                             </Style>
+                            <Style TargetType="DockPanel">
+                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                            </Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Padding" Value="10,1,10,1"/>
+                                <Setter Property="Margin" Value="0,0,4,0"/>
+                            </Style>
                         </Style.Resources>
                     </Style>
                 </StackPanel.Resources>
             </StackPanel>
         </ScrollViewer>
-        
+        <Windows:AppInfoPanel Grid.Column="1" Visibility="Hidden" x:Name="InfoPanel"/>
     </Grid>
 </Window>

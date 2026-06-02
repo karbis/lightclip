@@ -14,6 +14,7 @@ namespace lightclip {
 		MemoryStream curChunk = new MemoryStream();
 		bool chunking = false;
 		long deletedChunkOffset = 0;
+		long totalChunkSize = 0;
 		public long TotalFrameCount = 0;
 		public long FrameCount = 0;
 		public long MaxFrameCount = 0;
@@ -67,15 +68,16 @@ namespace lightclip {
 				Chunks.Add(chunk);
 				FrameCount += sampleCount;
 				TotalFrameCount += sampleCount;
+				totalChunkSize += chunk.Length;
 
-				while (FrameCount - getSampleCount(Chunks[0]) > MaxFrameCount) {
+				while (Chunks.Count > 1 && FrameCount - getSampleCount(Chunks[0]) > MaxFrameCount) {
 					deletedChunkOffset += Chunks[0].Length;
 					FrameCount -= getSampleCount(Chunks[0]);
 					Chunks[0].Dispose();
 					Chunks.RemoveAt(0);
 				}
 
-				if (deletedChunkOffset > 4e9) { // cant have the uint overflow. realistically this would take a while to happen, probably over a day
+				if (totalChunkSize > 2.14e9) { // cant have the int overflow
 					Debug.WriteLine("overflow");
 					OnUnexpectedDisposal?.Invoke(this, null);
 					Dispose();
@@ -84,6 +86,10 @@ namespace lightclip {
 
 				OnChunkWritten?.Invoke(this, null);
 			}
+		}
+
+		public override long Seek(long offset, SeekOrigin loc) {
+			return offset; // crash fix (by lying)
 		}
 
 		public MemoryStream GetFinalStream() {

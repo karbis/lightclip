@@ -29,5 +29,17 @@
     <Setting Name="ClipResolution" Type="System.String" Scope="User">
       <Value Profile="(Default)">Source</Value>
     </Setting>
+    <Setting Name="AddAppToStartup" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="VideoQualityPercent" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">70</Value>
+    </Setting>
+    <Setting Name="VideoQualityType" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Constant bitrate</Value>
+    </Setting>
+    <Setting Name="MicrophoneInputDevice" Type="System.String" Scope="User">
+      <Value Profile="(Default)">None</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -1,0 +1,34 @@
+﻿<UserControl x:Class="lightclip.Windows.AppInfoPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:lightclip.Windows"
+             mc:Ignorable="d" 
+             d:DesignHeight="230" d:DesignWidth="315">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="75"/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" Padding="5,5,5,5">
+            <Grid>
+                <Image HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100" Source="pack://application:,,,/Properties/logo.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                <Label Content="Lightclip" Margin="100,0,0,0" FontSize="24" FontWeight="Medium"/>
+                <Label Content="V1.1" Margin="100,28,0,0" FontSize="16" FontStyle="Italic"/>
+            </Grid>
+        </Border>
+        <Border Grid.Row="1" Padding="8">
+            <Border.Background>
+                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.MenuBarColorKey}}"/>
+            </Border.Background>
+            <Grid>
+                <TextBlock>
+                    <Hyperlink>github.com/karbis/lightclip</Hyperlink>
+                    <LineBreak/>
+                    2026
+                </TextBlock>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

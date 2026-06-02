@@ -20,27 +20,37 @@ namespace lightclip {
 	/// Interaction logic for SettingsWindow.xaml
 	/// </summary>
 	public partial class SettingsWindow : Window {
-		public SettingsWindow() {
+		Dictionary<SettingDefinition, UIElement> settingUiMap = new();
+
+		public SettingsWindow(bool openInfo = false) {
 			InitializeComponent();
 
 			foreach (SettingsCategory category in SettingsData.Data) {
-				Button button = CreateCategoryButton(category.Name);
-				button.Click += (_, _) => {
-					UpdateList(category);
-				};
+				Button button = CreateCategoryButton(category);
 			}
-			((Button)SettingCategories.Items[0]).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+			CreateCategoryButton(new SettingsCategory() { Name = "Info" });
+			((Button)SettingCategories.Items[(openInfo) ? SettingCategories.Items.Count - 1 : 0]).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+			Properties.Settings.Default.PropertyChanged += (_, _) => {
+				foreach (KeyValuePair<SettingDefinition, UIElement> pair in settingUiMap) {
+					UpdateSettingVisibility(pair.Key);
+				}
+			};
 		}
 
-		public Button CreateCategoryButton(string name) {
+		public Button CreateCategoryButton(SettingsCategory category) {
 			Button button = new Button() {
 				Width = 136,
 				Margin = new Thickness(-20, 0, 0, 0),
 				Padding = new Thickness(20, 1, 0, 1),
-				Content = name
+				Content = category.Name
 			};
-			SettingCategories.Items.Add(button);
 
+			button.Click += (_, _) => {
+				UpdateList(category);
+			};
+
+			SettingCategories.Items.Add(button);
 			return button;
 		}
 
@@ -49,7 +59,17 @@ namespace lightclip {
 				button.Style = (Style)FindResource(((string)button.Content == category.Name) ? "SelectedButton" : "UnselectedButton");
 			}
 
+			if (category.Name == "Info") {
+				SettingsList.Visibility = Visibility.Collapsed;
+				InfoPanel.Visibility = Visibility.Visible;
+				return;
+			} else {
+				SettingsList.Visibility = Visibility.Visible;
+				InfoPanel.Visibility = Visibility.Collapsed;
+			}
+
 			SettingsList.Children.Clear();
+			settingUiMap.Clear();
 			foreach (SettingDefinition setting in category.List) {
 				CreateSetting(setting);
 			}
@@ -57,7 +77,8 @@ namespace lightclip {
 
 		public Grid CreateSetting(SettingDefinition setting) {
 			Grid grid = new Grid();
-			grid.Children.Add(new TextBlock() { Text = setting.DisplayName });
+			TextBlock settingName = new TextBlock() { Text = setting.DisplayName };
+			grid.Children.Add(settingName);
 
 			object curVal = Properties.Settings.Default[setting.Name];
 			Action<object> setSetting = (object val) => {
@@ -77,7 +98,9 @@ namespace lightclip {
 
 				grid.Children.Add(box);
 			} else if (setting.Type is NumberSettingType number) {
-				TextBox box = new TextBox();
+				DockPanel panel = new DockPanel();
+				TextBlock text = new TextBlock() { Text = number.Unit, Margin = new Thickness(4, 4, 0, 0), Width = 25 };
+				TextBox box = new TextBox() { Width = 125 - 29 };
 				box.Text = ((int)curVal).ToString();
 
 				box.LostFocus += (_, _) => {
@@ -88,15 +111,19 @@ namespace lightclip {
 					box.Text = Properties.Settings.Default[setting.Name].ToString();
 				};
 
-				grid.Children.Add(box);
+				panel.Children.Add(box);
+				panel.Children.Add(text);
+				grid.Children.Add(panel);
 			} else if (setting.Type is FilePathSettingType) {
+				DockPanel panel = new DockPanel();
+				Button button = new Button() { Content = "Select" };
 				TextBox box = new TextBox();
 				box.Text = (string)curVal;
 
 				box.LostFocus += (_, _) => {
 					setSetting(box.Text);
 				};
-				box.GotFocus += (_, _) => {
+				button.Click += (_, _) => {
 					OpenFolderDialog dialog = new OpenFolderDialog();
 					dialog.Title = "Select directory";
 					dialog.Multiselect = false;
@@ -108,8 +135,12 @@ namespace lightclip {
 					}
 				};
 
-				grid.Children.Add(box);
+				panel.Children.Add(button);
+				panel.Children.Add(box);
+				grid.Children.Add(panel);
 			} else if (setting.Type is KeybindSettingType) {
+				DockPanel panel = new DockPanel();
+				Button button = new Button() { Content = "Select" };
 				TextBox box = new TextBox();
 				box.Text = (string)curVal;
 
@@ -120,7 +151,7 @@ namespace lightclip {
 					}
 					setSetting(box.Text);
 				};
-				box.GotFocus += (_, _) => {
+				button.Click += (_, _) => {
 					if (box.Text == "...") return;
 					box.Text = "...";
 					GlobalKeyboardHook hook = new GlobalKeyboardHook();
@@ -137,7 +168,9 @@ namespace lightclip {
 					}; ;
 				};
 
-				grid.Children.Add(box);
+				panel.Children.Add(button);
+				panel.Children.Add(box);
+				grid.Children.Add(panel);
 			} else if (setting.Type is BoolSettingType) {
 				CheckBox box = new CheckBox();
 				box.IsChecked = (bool)curVal;
@@ -150,10 +183,21 @@ namespace lightclip {
 				};
 
 				grid.Children.Add(box);
+			} else if (setting.Type is SeperatorSettingType) {
+				settingName.FontWeight = FontWeights.SemiBold;
+				grid.Margin = new Thickness(0, 0, 0, 1);
 			}
 
 			SettingsList.Children.Add(grid);
+			settingUiMap[setting] = grid;
+			UpdateSettingVisibility(setting);
+
 			return grid;
+		}
+
+		public void UpdateSettingVisibility(SettingDefinition setting) {
+			if (setting.VisibleCheck == null) return;
+			settingUiMap[setting].Visibility = (setting.VisibleCheck()) ? Visibility.Visible : Visibility.Collapsed;
 		}
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
@@ -11,6 +12,7 @@ using FFMpegCore;
 using FFMpegCore.Enums;
 using FFMpegCore.Extensions.Downloader;
 using Hardcodet.Wpf.TaskbarNotification;
+using Microsoft.Win32;
 
 namespace lightclip {
 	/// <summary>
@@ -18,8 +20,7 @@ namespace lightclip {
 	/// </summary>
 	public partial class App : Application {
 		GlobalKeyboardHook keyboardHook;
-		TaskbarIcon icon;
-		SettingsWindow settingsWindow = null;
+		lightclip.Properties.Settings settings = lightclip.Properties.Settings.Default;
 
 		[STAThread]
 		private void Start(object _, StartupEventArgs e) {
@@ -29,60 +30,34 @@ namespace lightclip {
 			keyboardHook = new GlobalKeyboardHook();
 			keyboardHook.KeyboardPressed += (object _, GlobalKeyboardHookEventArgs e) => {
 				if (e.KeyboardState != GlobalKeyboardHook.KeyboardState.KeyDown) return;
-				if (keyboardHook.GetFormattedKeyCode(e.KeyboardData) == lightclip.Properties.Settings.Default.Keybind) {
+				if (keyboardHook.GetFormattedKeyCode(e.KeyboardData) == settings.Keybind) {
 					ClipRecorder.Clip();
 				}
 			};
 
-			icon = new TaskbarIcon();
-			icon.IconSource = new BitmapImage(new Uri("pack://application:,,,/Properties/icon.ico", UriKind.Absolute));
-			icon.ToolTipText = "Lightclip";
+			TrayIcon.Create(this);
 
-			ContextMenu menu = new ContextMenu();
-			menu.Items.Add(new MenuItem() { Header = "Lightclip" });
-			menu.Items.Add(new Separator());
-
-			MenuItem clipItem = new MenuItem() { Header = "Clip" };
-			clipItem.Click += (_, _) => {
-				ClipRecorder.Clip();
-			};
-			menu.Items.Add(clipItem);
-
-			MenuItem settingsItem = new MenuItem() { Header = "Settings" };
-			settingsItem.Click += (_, _) => {
-				if (settingsWindow != null) {
-					settingsWindow.Focus();
-					return;
-				}
-				settingsWindow = new SettingsWindow();
-				settingsWindow.Show();
-
-				settingsWindow.Closed += (_, _) => {
-					settingsWindow = null;
-				};
-			};
-			menu.Items.Add(settingsItem);
-
-			MenuItem exitItem = new MenuItem() { Header = "Exit" };
-			exitItem.Click += (_, _) => {
-				Shutdown();
-			};
-			menu.Items.Add(exitItem);
-
-			icon.ContextMenu = menu;
-			icon.TrayLeftMouseUp += (_, _) => {
-				ClipRecorder.Clip();
-			};
-
-			if (lightclip.Properties.Settings.Default.OutputDirectory == "") {
-				lightclip.Properties.Settings.Default.OutputDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
-				lightclip.Properties.Settings.Default.Save();
+			if (settings.OutputDirectory == "") {
+				settings.OutputDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
+				settings.Save();
 			}
+
+			addAppToStartup(settings.AddAppToStartup);
+			settings.PropertyChanged += (object _, PropertyChangedEventArgs e) => {
+				if (e.PropertyName != "AddAppToStartup") return;
+				addAppToStartup(settings.AddAppToStartup);
+			};
 		}
 
 		private async void downloadFfmpeg() {
+			string binaryPath = Environment.ProcessPath ?? Directory.GetCurrentDirectory();
+			if (File.Exists(binaryPath)) {
+				binaryPath = Path.GetDirectoryName(binaryPath);
+			}
+			GlobalFFOptions.Current.BinaryFolder = binaryPath;
+
 			try {
-				if (File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "ffmpeg.exe"))) return;
+				if (File.Exists(Path.Combine(binaryPath, "ffmpeg.exe"))) return;
 				string pathEnv = Environment.GetEnvironmentVariable("Path");
 				if (pathEnv != null) {
 					foreach (string path in pathEnv.Split(Path.PathSeparator)) {
@@ -97,10 +72,7 @@ namespace lightclip {
 				MessageBox.Show("FFMpeg has to be installed to encode the clips.\nIt will automatically be installed in the same directory as the exe. Continue?",
 					"Lightclip", MessageBoxButton.OK, MessageBoxImage.Information);
 
-				FFOptions options = new FFOptions();
-				options.BinaryFolder = Directory.GetCurrentDirectory();
-
-				List<string> files = await FFMpegDownloader.DownloadBinaries(binaries: FFMpegCore.Extensions.Downloader.Enums.FFMpegBinaries.FFMpeg, options: options);
+				List<string> files = await FFMpegDownloader.DownloadBinaries(binaries: FFMpegCore.Extensions.Downloader.Enums.FFMpegBinaries.FFMpeg);
 				if (files.Count != 0) {
 					MessageBox.Show("FFMpeg has been installed.",
 						"Lightclip", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -112,8 +84,19 @@ namespace lightclip {
 			}
 		}
 
+		private void addAppToStartup(bool add) {
+			RegistryKey key = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
+			if (key == null) return;
+			
+			if (add) {
+				key.SetValue("Lightclip", Environment.ProcessPath);
+			} else {
+				key.DeleteValue("Lightclip", false);
+			}
+		}
+
 		protected override void OnExit(ExitEventArgs e) {
-			icon.Dispose();
+			TrayIcon.Icon.Dispose();
 			base.OnExit(e);
 		}
 	}

@@ -15,11 +15,16 @@
   <ItemGroup>
     <None Remove=".gitattributes" />
     <None Remove=".gitignore" />
+    <None Remove="Properties\logo.png" />
     <None Remove="README.md" />
+    <None Remove="Windows\SettingsWindow.xaml.cs~RFded440.TMP" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Properties\icon.ico">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Properties\logo.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>

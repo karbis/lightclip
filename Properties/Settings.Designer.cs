@@ -130,5 +130,53 @@ namespace lightclip.Properties {
                 this["ClipResolution"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AddAppToStartup {
+            get {
+                return ((bool)(this["AddAppToStartup"]));
+            }
+            set {
+                this["AddAppToStartup"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("70")]
+        public int VideoQualityPercent {
+            get {
+                return ((int)(this["VideoQualityPercent"]));
+            }
+            set {
+                this["VideoQualityPercent"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Constant bitrate")]
+        public string VideoQualityType {
+            get {
+                return ((string)(this["VideoQualityType"]));
+            }
+            set {
+                this["VideoQualityType"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("None")]
+        public string MicrophoneInputDevice {
+            get {
+                return ((string)(this["MicrophoneInputDevice"]));
+            }
+            set {
+                this["MicrophoneInputDevice"] = value;
+            }
+        }
     }
 }
