@@ -168,6 +168,13 @@ namespace lightclip {
 						Name = "MonitorInputSource",
 						Type = new MonitorInputSettingType(),
 					},
+					new SettingDefinition() {
+						DisplayName = "Encoding",
+						Name = "EncodingType",
+						Type = new DropdownSettingType() {
+							Values = ["GPU", "CPU"]
+						}
+					},
 				}
 			},
 			new SettingsCategory() {

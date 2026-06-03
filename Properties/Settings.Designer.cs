@@ -226,5 +226,17 @@ namespace lightclip.Properties {
                 this["OutputDevice"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("GPU")]
+        public string EncodingType {
+            get {
+                return ((string)(this["EncodingType"]));
+            }
+            set {
+                this["EncodingType"] = value;
+            }
+        }
     }
 }

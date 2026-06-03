@@ -84,6 +84,7 @@ namespace lightclip {
 						EncoderProfile = H264Profile.Main,
 						BitrateMode = ClipSettings.GetVideoBitrateType()
 					},
+					IsHardwareEncodingEnabled = settings.EncodingType != "CPU"
 				},
 				AudioOptions = new AudioOptions() {
 					IsAudioEnabled = true,

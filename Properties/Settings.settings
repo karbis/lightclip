@@ -53,5 +53,8 @@
     <Setting Name="OutputDevice" Type="System.String" Scope="User">
       <Value Profile="(Default)">Default</Value>
     </Setting>
+    <Setting Name="EncodingType" Type="System.String" Scope="User">
+      <Value Profile="(Default)">GPU</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
