@@ -45,6 +45,12 @@
                                 <Setter Property="Padding" Value="10,1,10,1"/>
                                 <Setter Property="Margin" Value="0,0,4,0"/>
                             </Style>
+                            <Style TargetType="Slider">
+                                <Setter Property="Width" Value="72"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="SmallChange" Value="1"/>
+                                <Setter Property="Margin" Value="3,0,0,0"/>
+                            </Style>
                         </Style.Resources>
                     </Style>
                 </StackPanel.Resources>

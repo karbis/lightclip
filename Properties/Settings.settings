@@ -41,5 +41,17 @@
     <Setting Name="MicrophoneInputDevice" Type="System.String" Scope="User">
       <Value Profile="(Default)">None</Value>
     </Setting>
+    <Setting Name="MonitorInputSource" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Auto</Value>
+    </Setting>
+    <Setting Name="InputVolume" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">100</Value>
+    </Setting>
+    <Setting Name="OutputVolume" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">100</Value>
+    </Setting>
+    <Setting Name="OutputDevice" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Default</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

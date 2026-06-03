@@ -46,6 +46,10 @@ namespace lightclip {
 			notif.Left = size.Width - notif.Width - 10;
 			notif.Top = size.Height - notif.Height - 10 - 40;
 
+			if (scaling.DpiScaleX == 1 && scaling.DpiScaleY == 1) {
+				TextOptions.SetTextFormattingMode(notif, TextFormattingMode.Display);
+			}
+
 			notif.CloseButton.Click += (_, _) => {
 				notif.Close();
 			};

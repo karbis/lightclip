@@ -69,5 +69,39 @@ namespace lightclip {
 
 			return null;
 		}
+
+		public static string GetOutputDevice() {
+			if (settings.OutputDevice == "None" || settings.OutputDevice == "Default") return null;
+			foreach (AudioDevice device in Recorder.GetSystemAudioDevices(AudioDeviceSource.OutputDevices)) {
+				if (device.FriendlyName == settings.OutputDevice) {
+					return device.DeviceName;
+				}
+			}
+			return null;
+		}
+
+		public static string GetCurrentSourceName() {
+			if (settings.MonitorInputSource == "Auto") {
+				string monitor = ExternMonitor.GetCurMonitor();
+				return monitor ?? DisplayRecordingSource.MainMonitor.DeviceName;
+			} else if (settings.MonitorInputSource == "Default") {
+				return DisplayRecordingSource.MainMonitor.DeviceName;
+			} else {
+				foreach (RecordableDisplay display in Recorder.GetDisplays()) {
+					if (display.FriendlyName == settings.MonitorInputSource) {
+						return display.DeviceName;
+					}
+				}
+
+				return DisplayRecordingSource.MainMonitor.DeviceName;
+			}
+		}
+		
+		public static RecordingSourceBase GetCurrentSource() {
+			return new DisplayRecordingSource(GetCurrentSourceName());
+		}
+
+		public static float GetInputVolume() => settings.InputVolume / 100f;
+		public static float GetOutputVolume() => settings.OutputVolume / 100f;
 	}
 }

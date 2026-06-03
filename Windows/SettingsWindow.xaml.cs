@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -20,6 +22,7 @@ namespace lightclip {
 	/// Interaction logic for SettingsWindow.xaml
 	/// </summary>
 	public partial class SettingsWindow : Window {
+		GlobalKeyboardHook hook = null;
 		Dictionary<SettingDefinition, UIElement> settingUiMap = new();
 
 		public SettingsWindow(bool openInfo = false) {
@@ -31,11 +34,22 @@ namespace lightclip {
 			CreateCategoryButton(new SettingsCategory() { Name = "Info" });
 			((Button)SettingCategories.Items[(openInfo) ? SettingCategories.Items.Count - 1 : 0]).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
 
-			Properties.Settings.Default.PropertyChanged += (_, _) => {
-				foreach (KeyValuePair<SettingDefinition, UIElement> pair in settingUiMap) {
-					UpdateSettingVisibility(pair.Key);
-				}
-			};
+			Properties.Settings.Default.PropertyChanged += propertyChanged;
+		}
+
+		private void propertyChanged(object _, PropertyChangedEventArgs e) {
+			foreach (KeyValuePair<SettingDefinition, UIElement> pair in settingUiMap) {
+				UpdateSettingVisibility(pair.Key);
+			}
+		}
+
+		protected override void OnClosed(EventArgs e) {
+			Properties.Settings.Default.PropertyChanged -= propertyChanged;
+			if (hook != null) {
+				hook.Dispose();
+			}
+
+			base.OnClosed(e);
 		}
 
 		public Button CreateCategoryButton(SettingsCategory category) {
@@ -70,6 +84,7 @@ namespace lightclip {
 
 			SettingsList.Children.Clear();
 			settingUiMap.Clear();
+			CreateSetting(new SettingDefinition() { DisplayName = category.Name, Name = "Bitrate", Type = new SeperatorSettingType() });
 			foreach (SettingDefinition setting in category.List) {
 				CreateSetting(setting);
 			}
@@ -82,6 +97,7 @@ namespace lightclip {
 
 			object curVal = Properties.Settings.Default[setting.Name];
 			Action<object> setSetting = (object val) => {
+				if (Properties.Settings.Default[setting.Name].Equals(val)) return;
 				Properties.Settings.Default[setting.Name] = val;
 				Properties.Settings.Default.Save();
 			};
@@ -154,7 +170,7 @@ namespace lightclip {
 				button.Click += (_, _) => {
 					if (box.Text == "...") return;
 					box.Text = "...";
-					GlobalKeyboardHook hook = new GlobalKeyboardHook();
+					hook = new GlobalKeyboardHook();
 					hook.KeyboardPressed += (object _, GlobalKeyboardHookEventArgs e) => {
 						if (e.KeyboardState != GlobalKeyboardHook.KeyboardState.KeyUp) return;
 						if (hook.IsModifierKey(e.KeyboardData)) return;
@@ -165,7 +181,7 @@ namespace lightclip {
 						if (box.Text != "...") return;
 						box.Text = key;
 						setSetting(key);
-					}; ;
+					};
 				};
 
 				panel.Children.Add(button);
@@ -186,6 +202,42 @@ namespace lightclip {
 			} else if (setting.Type is SeperatorSettingType) {
 				settingName.FontWeight = FontWeights.SemiBold;
 				grid.Margin = new Thickness(0, 0, 0, 1);
+			} else if (setting.Type is SliderSettingType sliderSetting) {
+				DockPanel panel = new DockPanel();
+				TextBox box = new TextBox() { Width = 50 };
+				Slider slider = new Slider() { Minimum = sliderSetting.SliderMinimum, Maximum = sliderSetting.SliderMaximum };
+				Action updateText = () => {
+					box.Text = (int)Properties.Settings.Default[setting.Name] + sliderSetting.Unit;
+				};
+				updateText();
+				slider.Value = Convert.ToDouble(curVal);
+
+				box.GotFocus += (_, _) => {
+					box.Text = Properties.Settings.Default[setting.Name].ToString();
+				};
+				box.LostFocus += (_, _) => {
+					int val;
+					if (int.TryParse(box.Text, out val)) {
+						setSetting(Math.Clamp(val, sliderSetting.Minimum, sliderSetting.Maximum));
+					}
+					updateText();
+					slider.Value = (int)Properties.Settings.Default[setting.Name];
+				};
+
+				slider.ValueChanged += (_, _) => {
+					int curVal = (int)Properties.Settings.Default[setting.Name];
+					if (curVal > sliderSetting.SliderMaximum || curVal < sliderSetting.SliderMinimum) return;
+
+					box.Text = (int)slider.Value + sliderSetting.Unit;
+				};
+				slider.PreviewMouseUp += (_, _) => {
+					setSetting((int)slider.Value);
+					updateText();
+				};
+
+				panel.Children.Add(box);
+				panel.Children.Add(slider);
+				grid.Children.Add(panel);
 			}
 
 			SettingsList.Children.Add(grid);

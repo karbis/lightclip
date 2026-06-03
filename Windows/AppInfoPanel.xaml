@@ -15,7 +15,7 @@
             <Grid>
                 <Image HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100" Source="pack://application:,,,/Properties/logo.png" RenderOptions.BitmapScalingMode="HighQuality"/>
                 <Label Content="Lightclip" Margin="100,0,0,0" FontSize="24" FontWeight="Medium"/>
-                <Label Content="V1.1" Margin="100,28,0,0" FontSize="16" FontStyle="Italic"/>
+                <Label Content="V1.2" Margin="100,28,0,0" FontSize="16" FontStyle="Italic"/>
             </Grid>
         </Border>
         <Border Grid.Row="1" Padding="8">

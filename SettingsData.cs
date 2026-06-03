@@ -30,6 +30,14 @@ namespace lightclip {
 			public int Maximum;
 			public string Unit;
 		}
+		public class SliderSettingType {
+			public int Minimum;
+			public int Maximum;
+			public int SliderMinimum;
+			public int SliderMaximum;
+			public string Unit;
+		}
+
 		public class InputDeviceSettingType : DropdownSettingType {
 			public override string[] Values {
 				get {
@@ -37,7 +45,30 @@ namespace lightclip {
 					foreach (AudioDevice device in Recorder.GetSystemAudioDevices(AudioDeviceSource.InputDevices)) {
 						devices.Add(device.FriendlyName);
 					}
-
+					return devices.ToArray();
+				}
+				set => base.Values = value;
+			}
+		}
+		public class OutputDeviceSettingType : DropdownSettingType {
+			public override string[] Values {
+				get {
+					List<string> devices = ["None", "Default"];
+					foreach (AudioDevice device in Recorder.GetSystemAudioDevices(AudioDeviceSource.OutputDevices)) {
+						devices.Add(device.FriendlyName);
+					}
+					return devices.ToArray();
+				}
+				set => base.Values = value;
+			}
+		}
+		public class MonitorInputSettingType : DropdownSettingType {
+			public override string[] Values {
+				get {
+					List<string> devices = ["Auto", "Default"];
+					foreach (RecordableDisplay device in Recorder.GetDisplays()) {
+						devices.Add(device.FriendlyName);
+					}
 					return devices.ToArray();
 				}
 				set => base.Values = value;
@@ -78,9 +109,8 @@ namespace lightclip {
 				}
 			},
 			new SettingsCategory() {
-				Name = "Clipping",
+				Name = "Video",
 				List = new List<SettingDefinition>() {
-					new SettingDefinition() { DisplayName = "Video", Name = "Bitrate", Type = new SeperatorSettingType() },
 					new SettingDefinition() {
 						DisplayName = "Clip duration",
 						Name = "ClipLength",
@@ -100,7 +130,7 @@ namespace lightclip {
 						}
 					},
 					new SettingDefinition() {
-						DisplayName = "Video resolution",
+						DisplayName = "Resolution",
 						Name = "ClipResolution",
 						Type = new DropdownSettingType() {
 							Values = ["Source", "1080p", "720p", "480p", "360p", "240p", "144p"]
@@ -133,8 +163,16 @@ namespace lightclip {
 						},
 						VisibleCheck = () => settings.VideoQualityType == "Quality"
 					},
-
-					new SettingDefinition() { DisplayName = "Audio", Name = "Bitrate", Type = new SeperatorSettingType() },
+					new SettingDefinition() {
+						DisplayName = "Capture source",
+						Name = "MonitorInputSource",
+						Type = new MonitorInputSettingType(),
+					},
+				}
+			},
+			new SettingsCategory() {
+				Name = "Audio",
+				List = new List<SettingDefinition>() {
 					new SettingDefinition() {
 						DisplayName = "Audio bitrate",
 						Name = "AudioBitrate",
@@ -143,9 +181,36 @@ namespace lightclip {
 						}
 					},
 					new SettingDefinition() {
+						DisplayName = "Output device",
+						Name = "OutputDevice",
+						Type = new OutputDeviceSettingType()
+					},
+					new SettingDefinition {
+						DisplayName = "Output volume",
+						Name = "OutputVolume",
+						Type = new SliderSettingType() {
+							Minimum = 0,
+							Maximum = 200,
+							SliderMaximum = 100,
+							SliderMinimum = 0,
+							Unit = "%"
+						}
+					},
+					new SettingDefinition() {
 						DisplayName = "Input device",
 						Name = "MicrophoneInputDevice",
 						Type = new InputDeviceSettingType()
+					},
+					new SettingDefinition {
+						DisplayName = "Input volume",
+						Name = "InputVolume",
+						Type = new SliderSettingType() {
+							Minimum = 0,
+							Maximum = 1000,
+							SliderMaximum = 200,
+							SliderMinimum = 0,
+							Unit = "%"
+						}
 					}
 				}
 			}

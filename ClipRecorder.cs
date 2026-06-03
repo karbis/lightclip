@@ -25,33 +25,36 @@ namespace lightclip {
 		static Recorder rec;
 		static Properties.Settings settings = Properties.Settings.Default;
 		static RecordingSourceBase source = null;
-		static Timer monitorCheckTimer = null;
+		static Timer sourceCheckTimer = null;
 		static long startTime;
 
 		public static void Start() {
 			CreateRecorder();
 
-			foreach (Settings.SettingDefinition setting in SettingsData.Data[1].List) {
-				if (setting.Type is Settings.SeperatorSettingType) continue;
-				Properties.Settings.Default.PropertyChanged += (object _, PropertyChangedEventArgs e) => {
-					if (e.PropertyName != setting.Name) return;
-					CreateRecorder();
-				};
+			for (int i = 1; i <= 2; i++) {
+				foreach (Settings.SettingDefinition setting in SettingsData.Data[i].List) {
+					if (setting.Type is Settings.SeperatorSettingType) continue;
+					Properties.Settings.Default.PropertyChanged += (object _, PropertyChangedEventArgs e) => {
+						if (e.PropertyName != setting.Name) return;
+						Task.Run(CreateRecorder);
+					};
+				}
 			}
-
+			
 			SystemEvents.PowerModeChanged += powerModeChanged;
 			Application.Current.Exit += (_, _) => {
 				SystemEvents.PowerModeChanged -= powerModeChanged;
 			};
 
-			monitorCheckTimer = new Timer((_) => {
+			sourceCheckTimer = new Timer((_) => {
 				if (source == null) return;
+				if (settings.MonitorInputSource != "Auto") return;
 				if (!(source is DisplayRecordingSource display)) return;
-				string newMonitor = ExternMonitor.GetCurMonitor() ?? DisplayRecordingSource.MainMonitor.DeviceName;
-				if (display.DeviceName == newMonitor) return;
+				string newName = ClipSettings.GetCurrentSourceName();
+				if (newName == display.DeviceName) return;
 
-				display.DeviceName = newMonitor;
-				rec.GetDynamicOptionsBuilder().SetUpdatedRecordingSource(display).Apply();
+				display.DeviceName = newName;
+				rec.GetDynamicOptionsBuilder().SetUpdatedRecordingSource(source).Apply();
 				//Debug.WriteLine("udpated");
 			}, null, 100, 100);
 		}
@@ -61,20 +64,15 @@ namespace lightclip {
 				stream.OnOverflow -= OnOverflow;
 				//stream.Dispose(); // should get automatically disposed by the recorder
 
-				Recorder oldRec = rec;
-				VideoMemoryStream oldStream = stream;
-				Application.Current.Dispatcher.BeginInvoke(() => {
-					oldRec.Dispose();
-					oldRec = null;
-					oldStream.Dispose();
-					oldStream = null;
+				Dispatcher.CurrentDispatcher.Invoke(() => {
+					rec.Dispose();
 				});
 			}
 
 			stream = new VideoMemoryStream();
 			stream.MaxFrameCount = settings.Framerate * settings.ClipLength;
 
-			source = new DisplayRecordingSource(DisplayRecordingSource.MainMonitor);
+			source = ClipSettings.GetCurrentSource();
 			RecorderOptions options = new RecorderOptions() {
 				VideoEncoderOptions = new VideoEncoderOptions() {
 					IsFixedFramerate = true,
@@ -89,11 +87,14 @@ namespace lightclip {
 				},
 				AudioOptions = new AudioOptions() {
 					IsAudioEnabled = true,
-					IsOutputDeviceEnabled = true,
+					IsOutputDeviceEnabled = settings.OutputDevice != "None",
 					IsInputDeviceEnabled = settings.MicrophoneInputDevice != "None",
 					AudioInputDevice = ClipSettings.GetInputDevice(),
+					AudioOutputDevice = ClipSettings.GetOutputDevice(),
 					Bitrate = ClipSettings.GetAudioBitrate(),
-					Channels = AudioChannels.Stereo
+					Channels = AudioChannels.Stereo,
+					InputVolume = ClipSettings.GetInputVolume(),
+					OutputVolume = ClipSettings.GetOutputVolume()
 				},
 				SourceOptions = new SourceOptions() {
 					RecordingSources = new List<RecordingSourceBase>() { source }
@@ -103,7 +104,6 @@ namespace lightclip {
 					Stretch = StretchMode.Fill
 				}
 			};
-
 
 			rec = Recorder.CreateRecorder(options);
 			rec.Record(stream);
@@ -121,7 +121,7 @@ namespace lightclip {
 		}
 
 		private static void OnOverflow(object _, EventArgs e) {
-			CreateRecorder();
+			Task.Run(() => CreateRecorder());
 		}
 
 		private static ScreenSize getBaseResolution() {

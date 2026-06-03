@@ -178,5 +178,53 @@ namespace lightclip.Properties {
                 this["MicrophoneInputDevice"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Auto")]
+        public string MonitorInputSource {
+            get {
+                return ((string)(this["MonitorInputSource"]));
+            }
+            set {
+                this["MonitorInputSource"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int InputVolume {
+            get {
+                return ((int)(this["InputVolume"]));
+            }
+            set {
+                this["InputVolume"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int OutputVolume {
+            get {
+                return ((int)(this["OutputVolume"]));
+            }
+            set {
+                this["OutputVolume"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Default")]
+        public string OutputDevice {
+            get {
+                return ((string)(this["OutputDevice"]));
+            }
+            set {
+                this["OutputDevice"] = value;
+            }
+        }
     }
 }
