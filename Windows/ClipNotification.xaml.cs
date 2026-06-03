@@ -41,6 +41,8 @@ namespace lightclip {
 			notif.TweenOpacity(1, () => {});
 
 			Rect size = ExternMonitor.GetMonitorSize(ExternMonitor.GetMonitorFromWindow(notif));
+			DpiScale scaling = VisualTreeHelper.GetDpi(notif);
+			size = new Rect(0, 0, size.Width / scaling.DpiScaleX, size.Height / scaling.DpiScaleY);
 			notif.Left = size.Width - notif.Width - 10;
 			notif.Top = size.Height - notif.Height - 10 - 40;
 
