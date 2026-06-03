@@ -18,10 +18,12 @@ namespace lightclip {
 		public long TotalFrameCount = 0;
 		public long FrameCount = 0;
 		public long MaxFrameCount = 0;
-		public event EventHandler OnUnexpectedDisposal;
+		public event EventHandler OnOverflow;
 		public event EventHandler OnChunkWritten;
+		bool closed = false;
 
 		public override void Write(byte[] buffer, int offset, int count) {
+			if (closed) return;
 			if (!chunking) {
 				chunking = Encoding.ASCII.GetString(buffer, 4, 4) == "moof"; // checks start of moof box, header should end by then
 			}
@@ -79,8 +81,9 @@ namespace lightclip {
 
 				if (totalChunkSize > 2.14e9) { // cant have the int overflow
 					Debug.WriteLine("overflow");
-					OnUnexpectedDisposal?.Invoke(this, null);
-					Dispose();
+					OnOverflow?.Invoke(this, null);
+					closed = true;
+					//Dispose();
 					return;
 				}
 
@@ -167,16 +170,16 @@ namespace lightclip {
 		}
 
 		protected override void Dispose(bool disposing) {
+			closed = true;
 			Header.Dispose();
-			foreach (MemoryStream chunk in Chunks.ToList()) {
+			foreach (MemoryStream chunk in Chunks) {
 				chunk.Dispose();
 			}
 			Chunks.Clear();
 			Chunks.TrimExcess();
 			curChunk.Dispose();
-			OnChunkWritten?.Invoke(this, null);
 
-			base.Dispose(disposing);
+			base.Dispose(true);
 		}
 	}
 }

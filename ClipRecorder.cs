@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
+using System.Windows.Threading;
 using FFMpegCore;
 using FFMpegCore.Pipes;
 using Microsoft.Win32;
@@ -25,6 +26,7 @@ namespace lightclip {
 		static Properties.Settings settings = Properties.Settings.Default;
 		static RecordingSourceBase source = null;
 		static Timer monitorCheckTimer = null;
+		static long startTime;
 
 		public static void Start() {
 			CreateRecorder();
@@ -36,6 +38,11 @@ namespace lightclip {
 					CreateRecorder();
 				};
 			}
+
+			SystemEvents.PowerModeChanged += powerModeChanged;
+			Application.Current.Exit += (_, _) => {
+				SystemEvents.PowerModeChanged -= powerModeChanged;
+			};
 
 			monitorCheckTimer = new Timer((_) => {
 				if (source == null) return;
@@ -51,9 +58,17 @@ namespace lightclip {
 
 		public static Recorder CreateRecorder() {
 			if (stream != null) {
-				rec.Stop();
-				rec.Dispose();
-				stream.Dispose();
+				stream.OnOverflow -= OnOverflow;
+				//stream.Dispose(); // should get automatically disposed by the recorder
+
+				Recorder oldRec = rec;
+				VideoMemoryStream oldStream = stream;
+				Application.Current.Dispatcher.BeginInvoke(() => {
+					oldRec.Dispose();
+					oldRec = null;
+					oldStream.Dispose();
+					oldStream = null;
+				});
 			}
 
 			stream = new VideoMemoryStream();
@@ -93,12 +108,20 @@ namespace lightclip {
 			rec = Recorder.CreateRecorder(options);
 			rec.Record(stream);
 
-			stream.OnUnexpectedDisposal += (_, _) => {
-				rec.Dispose();
-				CreateRecorder();
+			EventHandler startedHandler = null;
+			startedHandler = (_, _) => {
+				startTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+				stream.OnChunkWritten -= startedHandler;
 			};
+			stream.OnChunkWritten += startedHandler;
+
+			stream.OnOverflow += OnOverflow;
 
 			return rec;
+		}
+
+		private static void OnOverflow(object _, EventArgs e) {
+			CreateRecorder();
 		}
 
 		private static ScreenSize getBaseResolution() {
@@ -133,15 +156,18 @@ namespace lightclip {
 			}
 
 			// wait for a couple more chunks of data to be added
+			int intendedFrameCount = (int)((DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - startTime) / 1000 * settings.Framerate);
 			TaskCompletionSource task = new TaskCompletionSource();
 			EventHandler handler = null;
 
 			byte calls = 0;
 			handler = (_, _) => {
-				calls++;
-				if (calls >= Math.Ceiling(stream.FrameCount / settings.Framerate * 0.1) + 1) { // magic offset. idk it works kinda
-					stream.OnChunkWritten -= handler;
-					task.SetResult();
+				if (stream.TotalFrameCount >= intendedFrameCount) {
+					calls++;
+					if (calls >= Math.Ceiling(stream.FrameCount / settings.Framerate * 0.1)) { // magic offset. idk it works kinda
+						stream.OnChunkWritten -= handler;
+						task.SetResult();
+					}
 				}
 			};
 			stream.OnChunkWritten += handler;
@@ -169,6 +195,13 @@ namespace lightclip {
 			DateTime now = DateTime.Now;
 			return now.Year + "-" + now.Month.ToString().PadLeft(2, '0') + "-" + now.Day.ToString().PadLeft(2, '0') + " "
 				+ now.Hour + "-" + now.Minute.ToString().PadLeft(2, '0') + "-" + now.Second.ToString().PadLeft(2, '0');
+		}
+
+		private static void powerModeChanged(object _, PowerModeChangedEventArgs e) {
+			if (e.Mode == PowerModes.Resume) {
+				startTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - (long)(stream.TotalFrameCount / (double)settings.Framerate * 1000);
+				// bug fix. sleeping stops the recording
+			}
 		}
 	}
 }
