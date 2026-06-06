@@ -16,7 +16,6 @@
     <None Remove=".gitattributes" />
     <None Remove=".gitignore" />
     <None Remove="Properties\CloseButton.png" />
-    <None Remove="Properties\DeeperColor.ps" />
     <None Remove="Properties\logo.png" />
     <None Remove="Properties\PauseButton.png" />
     <None Remove="Properties\PlayButton.png" />
@@ -28,7 +27,6 @@
 
   <ItemGroup>
     <Resource Include="Properties\CloseButton.png" />
-    <Resource Include="Properties\DeeperColor.ps" />
     <Resource Include="Properties\icon.ico">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
@@ -44,6 +42,7 @@
     <PackageReference Include="FFMpegCore" Version="5.4.0" />
     <PackageReference Include="FFMpegCore.Extensions.Downloader" Version="5.0.0" />
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3967.48" />
     <PackageReference Include="ScreenRecorderLib" Version="6.6.0" />
   </ItemGroup>
 

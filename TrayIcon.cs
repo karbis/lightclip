@@ -13,7 +13,6 @@ namespace lightclip {
 	internal class TrayIcon {
 		public static TaskbarIcon Icon;
 		static SettingsWindow settingsWindow = null;
-		static ClipEditorWindow clipEditorWindow = null;
 		
 		public static void Create(Application app) {
 			Icon = new TaskbarIcon();
@@ -38,15 +37,7 @@ namespace lightclip {
 			MenuItem editItem = new MenuItem() { Header = "Edit last clip" };
 			editItem.Click += (_, _) => {
 				if (!editItem.IsEnabled) return;
-				if (clipEditorWindow != null) {
-					clipEditorWindow.Focus();
-					return;
-				}
-				clipEditorWindow = new ClipEditorWindow(ClipRecorder.LastClipPath);
-				clipEditorWindow.Show();
-				clipEditorWindow.Closed += (_, _) => {
-					clipEditorWindow = null;
-				};
+				new ClipEditorWindow(ClipRecorder.LastClipPath).Show();
 			};
 			menu.Items.Add(editItem);
 			menu.Items.Add(new Separator());

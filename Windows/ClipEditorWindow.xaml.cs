@@ -27,53 +27,42 @@ namespace lightclip.Windows {
 		public bool VideoPlaying = false;
 		public string VideoPath;
 		TimeSpan videoDuration = TimeSpan.FromMilliseconds(0.1);
-		TimeSpan videoPosition = TimeSpan.Zero;
 		private static Properties.Settings settings = Properties.Settings.Default;
+		private static ClipEditorWindow instance;
 
 		public ClipEditorWindow(string path) {
+			if (instance != null) {
+				instance.Close();
+			}
+
 			InitializeComponent();
 			VideoPath = path;
+			instance = this;
 
-			VideoElement.Source = new Uri(path, UriKind.Absolute);
-			VideoElement.Play();
-			VideoElement.IsMuted = true;
-			VideoElement.ScrubbingEnabled = true;
+			VideoElement.Open(new Uri(path, UriKind.Absolute));
 
 			Update();
-			VideoElement.MediaOpened += (_, _) => {
-				VideoElement.Pause();
-				VideoElement.Position = TimeSpan.Zero;
-				VideoElement.IsMuted = false;
+			EventHandler handler = null;
+			handler = (_, _) => {
+				Task.Run(getVideoDuration);
 				SetPlaying(false);
+				VideoElement.VideoLoaded -= handler;
 			};
+			VideoElement.VideoLoaded += handler;
 
 			PlayButton.Click += (_, _) => {
-				if (!VideoPlaying && videoPosition.TotalSeconds + 0.01 >= TrimEnd) {
+				if (!VideoPlaying && VideoElement.Position.TotalSeconds + 0.01 >= TrimEnd) {
 					VideoElement.Position = TimeSpan.Zero;
-					videoPosition = TimeSpan.Zero;
 				}
 				SetPlaying(!VideoPlaying);
 			};
 
-			VideoElement.MediaEnded += (_, _) => {
+			VideoElement.VideoEnded += (_, _) => {
 				SetPlaying(false);
-				videoPosition = videoDuration;
-				UpdateBottomBar();
-			};
-
-			CompositionTarget.Rendering += (_, _) => {
-				if (!VideoPlaying) return;
-				if (VideoElement.Position.TotalSeconds == 0) return;
-				videoPosition = VideoElement.Position;
-
-				if (videoPosition.TotalSeconds >= TrimEnd) {
-					SetPlaying(false);
-					videoPosition = TimeSpan.FromSeconds(TrimEnd);
-				}
 				Update();
-			};
+			};			
 
-			Task.Run(getVideoDuration);
+			CompositionTarget.Rendering += onFrameRendered;
 
 			setUpDragEvent(SkimBar, (double progress) => {});
 
@@ -205,7 +194,6 @@ namespace lightclip.Windows {
 				if (VideoPlaying) {
 					SetPlaying(false);
 				}
-				VideoElement.IsMuted = true;
 
 				Point pos = e.GetPosition(TrimBarBg);
 				double width = TrimBarBg.ActualWidth;
@@ -213,8 +201,7 @@ namespace lightclip.Windows {
 				double curTime = progress * videoDuration.TotalSeconds;
 				update(curTime);
 
-				videoPosition = TimeSpan.FromSeconds(Math.Clamp(curTime, TrimStart, TrimEnd));
-				VideoElement.Position = videoPosition;
+				VideoElement.Position = TimeSpan.FromSeconds(Math.Clamp(curTime, TrimStart, TrimEnd));
 				Update();
 			};
 
@@ -239,11 +226,28 @@ namespace lightclip.Windows {
 			};
 		}
 
+		private void onFrameRendered(object _, EventArgs e) {
+			if (!VideoPlaying) return;
+
+			if (VideoElement.Position.TotalSeconds >= TrimEnd) {
+				SetPlaying(false);
+				VideoElement.Position = TimeSpan.FromSeconds(TrimEnd);
+			}
+			Update();
+		}
+
+		protected override void OnClosed(EventArgs e) {
+			CompositionTarget.Rendering -= onFrameRendered;
+			VideoElement.Dispose();
+
+			base.OnClosed(e);
+		}
+
 		public void UpdateBottomBar() {
 			string icon = (VideoPlaying) ? "/Properties/PauseButton.png" : "/Properties/PlayButton.png";
 			PlayButtonImage.Source = new BitmapImage(new Uri("pack://application:,,," + icon, UriKind.Absolute));
 
-			PlaybackTimer.Text = $"{videoPosition.ToString(@"m\:ss\.ff")} / {videoDuration.ToString(@"m\:ss\.ff")}";
+			PlaybackTimer.Text = $"{VideoElement.Position.ToString(@"m\:ss\.ff")} / {videoDuration.ToString(@"m\:ss\.ff")}";
 			TrimLength.Text = TimeSpan.FromSeconds(GetClipLength()).ToString(@"m\:ss\.ff");
 		}
 
@@ -252,7 +256,7 @@ namespace lightclip.Windows {
 			double width = TrimBarBg.ActualWidth;
 			TrimBar.Width = GetClipLength() / duration * width;
 			TrimBar.Margin = new Thickness(TrimStart / duration * width, 0, 0, 0);
-			TrimBarCircle.Margin = new Thickness(videoPosition.TotalSeconds / duration * width - TrimBarCircle.Width / 2, 0, -6, 0);
+			TrimBarCircle.Margin = new Thickness(VideoElement.Position.TotalSeconds / duration * width - TrimBarCircle.Width / 2, 0, -6, 0);
 			TrimMinBar.Margin = new Thickness(TrimStart / duration * width - TrimMinBar.Width, 0, 0, 0);
 			TrimMaxBar.Margin = new Thickness(TrimEnd / duration * width, 0, -8, 0);
 
@@ -269,9 +273,8 @@ namespace lightclip.Windows {
 		public void SetPlaying(bool playing) {
 			VideoPlaying = playing;
 			if (playing) {
+				VideoElement.Position = TimeSpan.FromSeconds(Math.Clamp(VideoElement.Position.TotalSeconds, TrimStart, TrimEnd));
 				VideoElement.Play();
-				VideoElement.Position = TimeSpan.FromSeconds(Math.Clamp(videoPosition.TotalSeconds, TrimStart, TrimEnd));
-				VideoElement.IsMuted = false;
 			} else {
 				VideoElement.Pause();
 			}
@@ -280,9 +283,10 @@ namespace lightclip.Windows {
 
 		public double GetClipLength() => (TrimEnd - TrimStart);
 
-		void getVideoDuration() {
-			IMediaAnalysis analysis = FFProbe.Analyse(VideoPath);
-			videoDuration = analysis.Duration;
+		async void getVideoDuration() {
+			await VideoElement.Dispatcher.Invoke(async () => {
+				videoDuration = await VideoElement.GetDuration();
+			});
 			TrimEnd = videoDuration.TotalSeconds;
 			Dispatcher.Invoke(Update);
 		}

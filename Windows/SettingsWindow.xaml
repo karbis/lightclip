@@ -50,6 +50,7 @@
                                 <Setter Property="VerticalAlignment" Value="Center"/>
                                 <Setter Property="SmallChange" Value="1"/>
                                 <Setter Property="Margin" Value="3,0,0,0"/>
+                                <Setter Property="IsMoveToPointEnabled" Value="True"/>
                             </Style>
                         </Style.Resources>
                     </Style>

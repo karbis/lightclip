@@ -46,7 +46,6 @@ namespace lightclip {
 				curBuffer.Flush();
 				sampleCounts[curBuffer] = 0;
 			}
-			chunk.Dispose();
 		}
 
 		public override FileStream GetFinalStream() {

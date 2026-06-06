@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:lightclip.Windows"
-        xmlns:lightclip="clr-namespace:lightclip" x:Class="lightclip.Windows.ClipEditorWindow"
+        xmlns:local="clr-namespace:lightclip" xmlns:Windows="clr-namespace:lightclip.Windows"
+        xmlns:lightclip="clr-namespace:lightclip" xmlns:Wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf" x:Class="lightclip.Windows.ClipEditorWindow"
         mc:Ignorable="d"
         Title="Clip Editor" Height="720" Width="1280" Icon="/Properties/icon.ico" ShowActivated="True" MinHeight="360" MinWidth="640" WindowStartupLocation="CenterScreen">
     <Grid>
@@ -14,11 +14,7 @@
                 <RowDefinition Height="70"/>
             </Grid.RowDefinitions>
             <Grid Grid.Row="0" Background="Black">
-                <MediaElement x:Name="VideoElement" LoadedBehavior="Manual">
-                    <MediaElement.Effect>
-                        <lightclip:DeeperColorEffect/>
-                    </MediaElement.Effect>
-                </MediaElement>
+                <Windows:VideoPlayerElement x:Name="VideoElement"/>
             </Grid>
             <Grid Grid.Row="1">
                 <Grid MaxWidth="1920">
@@ -59,7 +55,7 @@
                                                 <RowDefinition Height="4*"/>
                                                 <RowDefinition Height="1*"/>
                                             </Grid.RowDefinitions>
-                                            <Slider Grid.Row="0" Orientation="Vertical" HorizontalAlignment="Center" Minimum="0" Maximum="100" SmallChange="1" x:Name="VolumeSlider"/>
+                                            <Slider Grid.Row="0" IsMoveToPointEnabled="True" Orientation="Vertical" HorizontalAlignment="Center" Minimum="0" Maximum="100" SmallChange="1" x:Name="VolumeSlider"/>
                                             <TextBlock Grid.Row="1" HorizontalAlignment="Center" FontSize="14" Margin="0,4,0,0" Text="{Binding Value, ElementName=VolumeSlider, StringFormat=\{0:0\}}"/>
                                         </Grid>
                                     </Border>

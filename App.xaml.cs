@@ -74,22 +74,12 @@ namespace lightclip {
 			GlobalFFOptions.Current.BinaryFolder = binaryPath;
 
 			try {
-				if (checkForExe("ffmpeg.exe") && checkForExe("ffprobe.exe")) return;
+				if (checkForExe("ffmpeg.exe")) return;
 
-				MessageBox.Show("FFMpeg binaries have to be installed to encode the clips.\nThey will automatically be installed in the same directory as the exe. Continue?",
+				MessageBox.Show("FFMpeg has to be installed to encode the clips.\nIt will automatically be installed in the same directory as the exe. Continue?",
 					"Lightclip", MessageBoxButton.OK, MessageBoxImage.Information);
 
-				FFMpegBinaries requiredBinaries;
-				if (!checkForExe("ffmpeg.exe") && !checkForExe("ffprobe.exe")) {
-					requiredBinaries = FFMpegBinaries.FFMpeg | FFMpegBinaries.FFProbe;
-				} else if (!checkForExe("ffprobe.exe")) {
-					requiredBinaries = FFMpegBinaries.FFProbe;
-				} else {
-					requiredBinaries = FFMpegBinaries.FFMpeg;
-				}
-				Debug.WriteLine(requiredBinaries);
-
-				List<string> files = await FFMpegDownloader.DownloadBinaries(binaries: requiredBinaries);
+				List<string> files = await FFMpegDownloader.DownloadBinaries(binaries: FFMpegBinaries.FFMpeg);
 				if (files.Count != 0) {
 					MessageBox.Show("FFMpeg has been installed.",
 						"Lightclip", MessageBoxButton.OK, MessageBoxImage.Information);
