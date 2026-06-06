@@ -116,9 +116,9 @@ namespace lightclip.Windows {
 
 			bool holdingCtrl = false;
 			PreviewKeyDown += (object _, KeyEventArgs e) => {
-				if (e.Key == Key.Space && !PlayButton.IsKeyboardFocused) {
+				if (e.Key == Key.Space) {
 					FocusManager.SetFocusedElement(FocusManager.GetFocusScope(this), this);
-					SetPlaying(!VideoPlaying);
+					PlayButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
 				} else if (e.Key == Key.S && holdingCtrl) {
 					SaveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
 				} else if (e.Key == Key.LeftCtrl) {
