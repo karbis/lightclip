@@ -36,7 +36,7 @@ namespace lightclip.Windows {
 					VideoEnded?.Invoke(this, null);
 				} else {
 					// ontimeupdate
-					position = TimeSpan.FromSeconds(Convert.ToDouble(message));
+					position = TimeSpan.FromSeconds(Convert.ToDouble(message, CultureInfo.InvariantCulture));
 				}
 			};
 		}
