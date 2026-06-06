@@ -15,6 +15,7 @@ namespace lightclip {
 		public class SettingDefinition {
 			public string DisplayName;
 			public string Name;
+			public string Description = null;
 			public object Type;
 			public Func<bool> VisibleCheck = null;
 		}
@@ -92,9 +93,12 @@ namespace lightclip {
 						Type = new KeybindSettingType()
 					},
 					new SettingDefinition() {
-						DisplayName = "Show clip notification",
-						Name = "ShowNotification",
-						Type = new BoolSettingType()
+						DisplayName = "Clip editor save mode",
+						Name = "ClipEditorSaveMode",
+						Description = "Changes how saving behaves in the clip editor.\nOverride overides the clip file, Save new creates a new edited video file.",
+						Type = new DropdownSettingType() {
+							Values = ["Override", "Save new"]
+						}
 					},
 					new SettingDefinition() {
 						DisplayName = "Copy clip to clipboard",
@@ -105,6 +109,24 @@ namespace lightclip {
 						DisplayName = "Launch app on startup",
 						Name = "AddAppToStartup",
 						Type = new BoolSettingType()
+					},
+
+					new SettingDefinition() { DisplayName = "Notifications", Name = "Bitrate", Type = new SeperatorSettingType() },
+					new SettingDefinition {
+						DisplayName = "Notification duration",
+						Name = "NotificationDuration",
+						Type = new SliderSettingType() {
+							Minimum = 1,
+							Maximum = 30,
+							SliderMaximum = 20,
+							SliderMinimum = 1,
+							Unit = "s"
+						}
+					},
+					new SettingDefinition() {
+						DisplayName = "Show clip notification",
+						Name = "ShowNotification",
+						Type = new BoolSettingType()
 					}
 				}
 			},
@@ -114,6 +136,7 @@ namespace lightclip {
 					new SettingDefinition() {
 						DisplayName = "Clip duration",
 						Name = "ClipLength",
+						Description = "Sets the length of clips.\nHigher clip durations will lead to higher memory usage (if buffer is on Memory).",
 						Type = new NumberSettingType() {
 							Minimum = 2,
 							Maximum = 600,
@@ -166,13 +189,24 @@ namespace lightclip {
 					new SettingDefinition() {
 						DisplayName = "Capture source",
 						Name = "MonitorInputSource",
+						Description = "Sets which monitor it records.\nAuto will automatically switch between monitors depending on mouse position.",
 						Type = new MonitorInputSettingType(),
 					},
+					new SettingDefinition() { DisplayName = "Encoding", Name = "Bitrate", Type = new SeperatorSettingType() },
 					new SettingDefinition() {
-						DisplayName = "Encoding",
+						DisplayName = "Encoding processor",
 						Name = "EncodingType",
+						Description = "Sets which processing unit to use to encode the video.\nCPU will lead to lower GPU usage, but higher CPU usage.",
 						Type = new DropdownSettingType() {
 							Values = ["GPU", "CPU"]
+						}
+					},
+					new SettingDefinition() {
+						DisplayName = "Buffer location",
+						Name = "StreamType",
+						Description = "Sets where to store the video buffer.\nMemory will lead to higher memory usage, but Disk might wear down your storage device.\nMemory is recommended for short clips, while Disk is recommended for long clips.",
+						Type = new DropdownSettingType() {
+							Values = ["Memory", "Disk"]
 						}
 					},
 				}
@@ -187,6 +221,8 @@ namespace lightclip {
 							Values = ["96 kbps", "128 kbps", "160 kbps", "192 kbps"]
 						}
 					},
+
+					new SettingDefinition() { DisplayName = "Output", Name = "Bitrate", Type = new SeperatorSettingType() },
 					new SettingDefinition() {
 						DisplayName = "Output device",
 						Name = "OutputDevice",
@@ -203,6 +239,8 @@ namespace lightclip {
 							Unit = "%"
 						}
 					},
+
+					new SettingDefinition() { DisplayName = "Input", Name = "Bitrate", Type = new SeperatorSettingType() },
 					new SettingDefinition() {
 						DisplayName = "Input device",
 						Name = "MicrophoneInputDevice",

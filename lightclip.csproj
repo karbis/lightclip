@@ -15,18 +15,29 @@
   <ItemGroup>
     <None Remove=".gitattributes" />
     <None Remove=".gitignore" />
+    <None Remove="Properties\CloseButton.png" />
+    <None Remove="Properties\DeeperColor.ps" />
     <None Remove="Properties\logo.png" />
+    <None Remove="Properties\PauseButton.png" />
+    <None Remove="Properties\PlayButton.png" />
+    <None Remove="Properties\play_button.png" />
+    <None Remove="Properties\VolumeButton.png" />
     <None Remove="README.md" />
     <None Remove="Windows\SettingsWindow.xaml.cs~RFded440.TMP" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Properties\CloseButton.png" />
+    <Resource Include="Properties\DeeperColor.ps" />
     <Resource Include="Properties\icon.ico">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Properties\logo.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Properties\PauseButton.png" />
+    <Resource Include="Properties\PlayButton.png" />
+    <Resource Include="Properties\VolumeButton.png" />
   </ItemGroup>
 	
   <ItemGroup>

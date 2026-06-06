@@ -56,5 +56,17 @@
     <Setting Name="EncodingType" Type="System.String" Scope="User">
       <Value Profile="(Default)">GPU</Value>
     </Setting>
+    <Setting Name="StreamType" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Memory</Value>
+    </Setting>
+    <Setting Name="ClipEditorVolume" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">100</Value>
+    </Setting>
+    <Setting Name="ClipEditorSaveMode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Override</Value>
+    </Setting>
+    <Setting Name="NotificationDuration" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">5</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

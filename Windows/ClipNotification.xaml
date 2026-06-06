@@ -8,17 +8,17 @@
         mc:Ignorable="d"
         TextOptions.TextFormattingMode="Ideal"
         Title="ClipNotification" Height="55" Width="275" Background="Transparent" ResizeMode="NoResize" WindowStyle="None" ShowInTaskbar="False" AllowsTransparency="True" Topmost="True" ShowActivated="False">
-    <Grid>
+    <Grid x:Name="Panel">
         <Rectangle Stroke="#FF0E212F" Fill="#FF0E2535" RadiusX="7" RadiusY="7" StrokeThickness="2"/>
         <TextBlock Text="Clipped 15 seconds" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontSize="16" Padding="8,0,0,0" x:Name="Label">
             <TextBlock.Effect>
                 <DropShadowEffect BlurRadius="1" ShadowDepth="1"/>
             </TextBlock.Effect>
         </TextBlock>
-        <Button Content="X" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#00DDDDDD" BorderBrush="#00707070" Foreground="#66000000" FontSize="16" FontWeight="Bold" Margin="0,1,6,0" x:Name="CloseButton">
+        <Button HorizontalAlignment="Right" VerticalAlignment="Top" Width="16" Height="16" Margin="0,5,5,0" x:Name="CloseButton" Background="#FF0E2535" BorderThickness="0">
             <Button.Template>
                 <ControlTemplate TargetType="Button">
-                    <TextBlock Text="{TemplateBinding Content}" />
+                    <Image Source="/Properties/CloseButton.png" Opacity="0.4"/>
                 </ControlTemplate>
             </Button.Template>
         </Button>

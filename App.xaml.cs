@@ -12,7 +12,9 @@ using FFMpegCore;
 using FFMpegCore.Enums;
 using FFMpegCore.Extensions.Downloader;
 using Hardcodet.Wpf.TaskbarNotification;
+using lightclip.Windows;
 using Microsoft.Win32;
+using FFMpegCore.Extensions.Downloader.Enums;
 
 namespace lightclip {
 	/// <summary>
@@ -49,6 +51,21 @@ namespace lightclip {
 			};
 		}
 
+		private bool checkForExe(string name) {
+			if (File.Exists(Path.Combine(GlobalFFOptions.Current.BinaryFolder, name))) return true;
+			string pathEnv = Environment.GetEnvironmentVariable("Path");
+			if (pathEnv != null) {
+				foreach (string path in pathEnv.Split(Path.PathSeparator)) {
+					try {
+						if (File.Exists(Path.Combine(path, name))) return true;
+					} catch {
+						continue;
+					}
+				}
+			}
+			return false;
+		}
+
 		private async void downloadFfmpeg() {
 			string binaryPath = Environment.ProcessPath ?? Directory.GetCurrentDirectory();
 			if (File.Exists(binaryPath)) {
@@ -57,22 +74,22 @@ namespace lightclip {
 			GlobalFFOptions.Current.BinaryFolder = binaryPath;
 
 			try {
-				if (File.Exists(Path.Combine(binaryPath, "ffmpeg.exe"))) return;
-				string pathEnv = Environment.GetEnvironmentVariable("Path");
-				if (pathEnv != null) {
-					foreach (string path in pathEnv.Split(Path.PathSeparator)) {
-						try {
-							if (File.Exists(Path.Combine(path, "ffmpeg.exe"))) return;
-						} catch {
-							continue;
-						}
-					}
-				}
+				if (checkForExe("ffmpeg.exe") && checkForExe("ffprobe.exe")) return;
 
-				MessageBox.Show("FFMpeg has to be installed to encode the clips.\nIt will automatically be installed in the same directory as the exe. Continue?",
+				MessageBox.Show("FFMpeg binaries have to be installed to encode the clips.\nThey will automatically be installed in the same directory as the exe. Continue?",
 					"Lightclip", MessageBoxButton.OK, MessageBoxImage.Information);
 
-				List<string> files = await FFMpegDownloader.DownloadBinaries(binaries: FFMpegCore.Extensions.Downloader.Enums.FFMpegBinaries.FFMpeg);
+				FFMpegBinaries requiredBinaries;
+				if (!checkForExe("ffmpeg.exe") && !checkForExe("ffprobe.exe")) {
+					requiredBinaries = FFMpegBinaries.FFMpeg | FFMpegBinaries.FFProbe;
+				} else if (!checkForExe("ffprobe.exe")) {
+					requiredBinaries = FFMpegBinaries.FFProbe;
+				} else {
+					requiredBinaries = FFMpegBinaries.FFMpeg;
+				}
+				Debug.WriteLine(requiredBinaries);
+
+				List<string> files = await FFMpegDownloader.DownloadBinaries(binaries: requiredBinaries);
 				if (files.Count != 0) {
 					MessageBox.Show("FFMpeg has been installed.",
 						"Lightclip", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -80,7 +97,7 @@ namespace lightclip {
 					MessageBox.Show("An error has occured while installing FFMpeg.", "Lightclip", MessageBoxButton.OK, MessageBoxImage.Error);
 				}
 			} catch (Exception exception) {
-				MessageBox.Show("Error while downloading ffmpeg\n" + exception.ToString(), "Lightclip");
+				MessageBox.Show("Error while downloading FFMpeg\n" + exception.ToString(), "Lightclip");
 			}
 		}
 

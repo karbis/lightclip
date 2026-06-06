@@ -1,6 +1,7 @@
 ﻿using ScreenRecorderLib;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -99,6 +100,10 @@ namespace lightclip {
 		
 		public static RecordingSourceBase GetCurrentSource() {
 			return new DisplayRecordingSource(GetCurrentSourceName());
+		}
+
+		public static BaseVideoStream GetVideoStream() {
+			return (settings.StreamType == "Disk") ? new VideoDiskStream() : new VideoMemoryStream();
 		}
 
 		public static float GetInputVolume() => settings.InputVolume / 100f;

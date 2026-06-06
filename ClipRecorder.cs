@@ -16,17 +16,20 @@ using System.Windows.Documents;
 using System.Windows.Threading;
 using FFMpegCore;
 using FFMpegCore.Pipes;
+using lightclip.Windows;
 using Microsoft.Win32;
 using ScreenRecorderLib;
 
 namespace lightclip {
 	internal class ClipRecorder {
-		static VideoMemoryStream stream;
+		static BaseVideoStream stream;
 		static Recorder rec;
 		static Properties.Settings settings = Properties.Settings.Default;
 		static RecordingSourceBase source = null;
 		static Timer sourceCheckTimer = null;
 		static long startTime;
+		public static bool Initialized = false;
+		public static string LastClipPath;
 
 		public static void Start() {
 			CreateRecorder();
@@ -60,16 +63,20 @@ namespace lightclip {
 		}
 
 		public static Recorder CreateRecorder() {
+			Initialized = false;
 			if (stream != null) {
 				stream.OnOverflow -= OnOverflow;
 				//stream.Dispose(); // should get automatically disposed by the recorder
 
 				Dispatcher.CurrentDispatcher.Invoke(() => {
 					rec.Dispose();
+					if (stream is VideoDiskStream disk) {
+						disk.CloseHandles();
+					}
 				});
 			}
 
-			stream = new VideoMemoryStream();
+			stream = ClipSettings.GetVideoStream();
 			stream.MaxFrameCount = settings.Framerate * settings.ClipLength;
 
 			source = ClipSettings.GetCurrentSource();
@@ -113,6 +120,7 @@ namespace lightclip {
 			startedHandler = (_, _) => {
 				startTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 				stream.OnChunkWritten -= startedHandler;
+				Initialized = true;
 			};
 			stream.OnChunkWritten += startedHandler;
 
@@ -132,20 +140,22 @@ namespace lightclip {
 
 		public async static Task EncodeClip(string path) {
 			Debug.WriteLine("Encoding started");
-			using MemoryStream videoStream = stream.GetFinalStream();
+			using Stream videoStream = stream.GetFinalStream();
 			videoStream.Position = 0;
 
 			Debug.WriteLine("ffmpeg started");
 			//File.WriteAllBytes(path, videoStream.ToArray());
 			await FFMpegArguments
-				.FromPipeInput(new StreamPipeSource(videoStream), (FFMpegArgumentOptions options) => options.WithCustomArgument($"-sseof -{settings.ClipLength}"))
-				.OutputToFile(path, true, (FFMpegArgumentOptions options) => options.WithCustomArgument("-c copy"))
+				.FromPipeInput(new StreamPipeSource(videoStream))
+				.OutputToFile(path, true, (FFMpegArgumentOptions options) => options.WithCustomArgument("-c copy")
+					.Seek(TimeSpan.FromSeconds(Math.Max(0, stream.FrameCount / (double)settings.Framerate - settings.ClipLength))))
 				.ProcessAsynchronously();
 
 			Debug.WriteLine("video written");
 		}
 
 		public async static void Clip() {
+			if (!Initialized) return;
 			if (!Path.Exists(Properties.Settings.Default.OutputDirectory)) {
 				MessageBox.Show("The output directory for clips does not exist", "Clip error");
 				return;
@@ -165,7 +175,7 @@ namespace lightclip {
 			handler = (_, _) => {
 				if (stream.TotalFrameCount >= intendedFrameCount) {
 					calls++;
-					if (calls >= Math.Ceiling(stream.FrameCount / settings.Framerate * 0.1)) { // magic offset. idk it works kinda
+					if (calls >= Math.Min(4, Math.Ceiling(stream.FrameCount / settings.Framerate * 0.1))) { // magic offset. idk it works kinda
 						stream.OnChunkWritten -= handler;
 						task.SetResult();
 					}
@@ -182,12 +192,19 @@ namespace lightclip {
 				return;
 			}
 
+			LastClipPath = path;
 			if (settings.CopyToClipboard) {
 				Clipboard.SetFileDropList(new System.Collections.Specialized.StringCollection() { path });
 			}
 			if (notif != null) {
-				notif.Label.Text = $"Clipped {Math.Round(stream.FrameCount / (double)settings.Framerate)} seconds";
+				double length = Math.Min(settings.ClipLength, Math.Round(stream.FrameCount / (double)settings.Framerate));
+				string lengthStr = (length < 60) ? $"{length}s" : TimeSpan.FromSeconds(length).ToString(@"m\:ss");
+
+				notif.Label.Text = $"Clipped {lengthStr}, click here to edit.";
 				notif.StartFadeout();
+				notif.AddClickEvent(() => {
+					new ClipEditorWindow(path).Show();
+				});
 				notif = null;
 			}
 		}

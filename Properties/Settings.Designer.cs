@@ -238,5 +238,53 @@ namespace lightclip.Properties {
                 this["EncodingType"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Memory")]
+        public string StreamType {
+            get {
+                return ((string)(this["StreamType"]));
+            }
+            set {
+                this["StreamType"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int ClipEditorVolume {
+            get {
+                return ((int)(this["ClipEditorVolume"]));
+            }
+            set {
+                this["ClipEditorVolume"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Override")]
+        public string ClipEditorSaveMode {
+            get {
+                return ((string)(this["ClipEditorSaveMode"]));
+            }
+            set {
+                this["ClipEditorSaveMode"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("5")]
+        public int NotificationDuration {
+            get {
+                return ((int)(this["NotificationDuration"]));
+            }
+            set {
+                this["NotificationDuration"] = value;
+            }
+        }
     }
 }

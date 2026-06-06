@@ -64,11 +64,18 @@ namespace lightclip {
 		}
 
 		public void StartFadeout() {
-			delay(4.5, () => {
+			delay(Properties.Settings.Default.NotificationDuration - 0.5f, () => {
 				TweenOpacity(0, () => {
 					Close();
 				});
 			});
+		}
+
+		public void AddClickEvent(Action func) {
+			Panel.MouseLeftButtonDown += (_, _) => {
+				func();
+				Close();
+			};
 		}
 
 		public DoubleAnimation TweenOpacity(double to, Action callback) {

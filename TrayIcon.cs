@@ -1,4 +1,5 @@
 ﻿using Hardcodet.Wpf.TaskbarNotification;
+using lightclip.Windows;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace lightclip {
 	internal class TrayIcon {
 		public static TaskbarIcon Icon;
 		static SettingsWindow settingsWindow = null;
+		static ClipEditorWindow clipEditorWindow = null;
 		
 		public static void Create(Application app) {
 			Icon = new TaskbarIcon();
@@ -33,6 +35,22 @@ namespace lightclip {
 			};
 			menu.Items.Add(clipItem);
 
+			MenuItem editItem = new MenuItem() { Header = "Edit last clip" };
+			editItem.Click += (_, _) => {
+				if (!editItem.IsEnabled) return;
+				if (clipEditorWindow != null) {
+					clipEditorWindow.Focus();
+					return;
+				}
+				clipEditorWindow = new ClipEditorWindow(ClipRecorder.LastClipPath);
+				clipEditorWindow.Show();
+				clipEditorWindow.Closed += (_, _) => {
+					clipEditorWindow = null;
+				};
+			};
+			menu.Items.Add(editItem);
+			menu.Items.Add(new Separator());
+
 			MenuItem settingsItem = new MenuItem() { Header = "Settings" };
 			settingsItem.Click += (_, _) => {
 				openSettings(false);
@@ -48,6 +66,10 @@ namespace lightclip {
 			Icon.ContextMenu = menu;
 			Icon.TrayLeftMouseUp += (_, _) => {
 				ClipRecorder.Clip();
+			};
+
+			menu.Opened += (_, _) => {
+				editItem.IsEnabled = ClipRecorder.LastClipPath != null;
 			};
 		}
 

@@ -94,6 +94,9 @@ namespace lightclip {
 			Grid grid = new Grid();
 			TextBlock settingName = new TextBlock() { Text = setting.DisplayName };
 			grid.Children.Add(settingName);
+			if (setting.Description != null) {
+				settingName.ToolTip = setting.Description;
+			}
 
 			object curVal = Properties.Settings.Default[setting.Name];
 			Action<object> setSetting = (object val) => {
