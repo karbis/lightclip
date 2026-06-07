@@ -46,6 +46,7 @@ namespace lightclip.Windows {
 			handler = (_, _) => {
 				Task.Run(getVideoDuration);
 				SetPlaying(false);
+				updateVolume();
 				VideoElement.VideoLoaded -= handler;
 			};
 			VideoElement.VideoLoaded += handler;
@@ -89,7 +90,6 @@ namespace lightclip.Windows {
 			};
 
 			VolumeSlider.Value = settings.ClipEditorVolume;
-			updateVolume();
 			VolumeSlider.ValueChanged += (_, _) => {
 				settings.ClipEditorVolume = Convert.ToInt32(VolumeSlider.Value);
 				updateVolume();
@@ -190,6 +190,8 @@ namespace lightclip.Windows {
 		}
 
 		private void setUpDragEvent(UIElement element, Action<double> update) {
+			bool skimming = false;
+			bool wasPlaying = false;
 			Action<MouseEventArgs> onClick = (MouseEventArgs e) => {
 				if (VideoPlaying) {
 					SetPlaying(false);
@@ -204,25 +206,35 @@ namespace lightclip.Windows {
 				VideoElement.Position = TimeSpan.FromSeconds(Math.Clamp(curTime, TrimStart, TrimEnd));
 				Update();
 			};
+			Action onRelease = () => {
+				skimming = false;
+				if (wasPlaying) {
+					SetPlaying(true);
+				}
+			};
 
-			bool skimming = false;
 			element.MouseLeftButtonDown += (object _, MouseButtonEventArgs e) => {
 				skimming = true;
 				e.Handled = true;
+				wasPlaying = VideoPlaying;
 				onClick(e);
 			};
 			element.MouseLeftButtonUp += (object _, MouseButtonEventArgs e) => {
-				skimming = false;
+				onRelease();
 				e.Handled = true;
 			};
 
 			MouseMove += (object _, MouseEventArgs e) => {
 				if (!skimming) return;
 				if (e.LeftButton != MouseButtonState.Pressed) {
-					skimming = false;
+					onRelease();
 					return;
 				}
 				onClick(e);
+			};
+			MouseLeftButtonUp += (_, _) => {
+				if (!skimming) return;
+				onRelease();
 			};
 		}
 
