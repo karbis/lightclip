@@ -105,6 +105,7 @@ namespace lightclip.Windows {
 				}
 				settingsWindow = new SettingsWindow("Clip editor");
 				settingsWindow.Owner = this;
+				settingsWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
 				settingsWindow.ShowDialog();
 			};
 
