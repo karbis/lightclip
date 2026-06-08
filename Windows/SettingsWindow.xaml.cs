@@ -98,7 +98,12 @@ namespace lightclip {
 			}
 
 			if (category.Name == "Clip editor" && defaultCategory != "Clip editor") {
-				CreateSetting(new SettingDefinition() { DisplayName = "Open video in clip editor", Name = "Bitrate", Type = new OpenClipEditorSettingType() });
+				CreateSetting(new SettingDefinition() { 
+					DisplayName = "Open video in clip editor",
+					Description = "Open a video in the clip editor.",
+					Name = "Bitrate",
+					Type = new OpenClipEditorSettingType()
+				});
 			}
 		}
 
