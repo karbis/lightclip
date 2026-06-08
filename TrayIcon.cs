@@ -13,7 +13,7 @@ namespace lightclip {
 	internal class TrayIcon {
 		public static TaskbarIcon Icon;
 		static SettingsWindow settingsWindow = null;
-		
+
 		public static void Create(Application app) {
 			Icon = new TaskbarIcon();
 			Icon.IconSource = new BitmapImage(new Uri("pack://application:,,,/Properties/icon.ico", UriKind.Absolute));

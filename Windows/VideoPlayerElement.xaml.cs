@@ -49,6 +49,7 @@ namespace lightclip.Windows {
 			let video = document.querySelector('video');
 			video.controls = false;
 			video.autoplay = false;
+			video.style = 'width: 100%; height: 100%; object-fit: contain;';
 			video.oncanplaythrough = () => {
 				chrome.webview.postMessage('VideoLoaded');
 			};

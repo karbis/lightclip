@@ -26,6 +26,7 @@ namespace lightclip {
 		public class KeybindSettingType { }
 		public class BoolSettingType { }
 		public class SeperatorSettingType { }
+		public class OpenClipEditorSettingType { }
 		public class NumberSettingType {
 			public int Minimum;
 			public int Maximum;

@@ -24,9 +24,11 @@ namespace lightclip {
 	public partial class SettingsWindow : Window {
 		GlobalKeyboardHook hook = null;
 		Dictionary<SettingDefinition, UIElement> settingUiMap = new();
+		string defaultCategory = null;
 
 		public SettingsWindow(string openedCategory = "General") {
 			InitializeComponent();
+			defaultCategory = openedCategory;
 
 			foreach (SettingsCategory category in SettingsData.Data) {
 				Button button = CreateCategoryButton(category);
@@ -93,6 +95,10 @@ namespace lightclip {
 			CreateSetting(new SettingDefinition() { DisplayName = category.Name, Name = "Bitrate", Type = new SeperatorSettingType() });
 			foreach (SettingDefinition setting in category.List) {
 				CreateSetting(setting);
+			}
+
+			if (category.Name == "Clip editor" && defaultCategory != "Clip editor") {
+				CreateSetting(new SettingDefinition() { DisplayName = "Open video in clip editor", Name = "Bitrate", Type = new OpenClipEditorSettingType() });
 			}
 		}
 
@@ -247,6 +253,23 @@ namespace lightclip {
 				panel.Children.Add(box);
 				panel.Children.Add(slider);
 				grid.Children.Add(panel);
+			} else if (setting.Type is OpenClipEditorSettingType) {
+				Button button = new Button() { Content = "Open", HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness() };
+				button.Click += (_, _) => {
+					OpenFileDialog dialog = new OpenFileDialog();
+					dialog.Title = "Select video";
+					dialog.Multiselect = false;
+					dialog.CheckFileExists = true;
+					dialog.CheckPathExists = true;
+					dialog.Filter = "Video files (*.mp4, *.mov, *.webm)|*.mp4;*.mov;*.webm";
+					dialog.DefaultDirectory = Properties.Settings.Default.OutputDirectory;
+
+					if (dialog.ShowDialog() == true) {
+						Close();
+						new Windows.ClipEditorWindow(dialog.FileName).Show();
+					}
+				};
+				grid.Children.Add(button);
 			}
 
 			SettingsList.Children.Add(grid);
