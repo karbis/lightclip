@@ -108,7 +108,7 @@ namespace lightclip {
 					RecordingSources = new List<RecordingSourceBase>() { source }
 				},
 				OutputOptions = new OutputOptions() {
-					OutputFrameSize = ClipSettings.GetResolution(getBaseResolution()),
+					OutputFrameSize = ClipSettings.GetClipResolution(getBaseResolution()),
 					Stretch = StretchMode.Fill
 				}
 			};

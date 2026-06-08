@@ -8,5 +8,5 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
-    <Wpf:WebView2 x:Name="WebView"/>
+    <Wpf:WebView2CompositionControl x:Name="WebView" IsHitTestVisible="False"/>
 </UserControl>

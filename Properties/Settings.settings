@@ -68,5 +68,14 @@
     <Setting Name="NotificationDuration" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">5</Value>
     </Setting>
+    <Setting Name="ClipEditorResolution" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Source</Value>
+    </Setting>
+    <Setting Name="ClipEditorVideoVolume" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">100</Value>
+    </Setting>
+    <Setting Name="ClipEditorCropEditor" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using Windows.Security.Authentication.Web.Provider;
 
 namespace lightclip {
 	internal class ClipSettings {
@@ -29,34 +31,35 @@ namespace lightclip {
 			};
 		}
 
-		public static ScreenSize GetResolution(ScreenSize baseResolution) {
-			double maxResolution = 1;
-			switch (settings.ClipResolution) {
-				default:
-				case "Source":
-					return baseResolution;
-				case "1080p":
-					maxResolution = 1080;
-					break;
-				case "720p":
-					maxResolution = 720;
-					break;
-				case "480p":
-					maxResolution = 480;
-					break;
-				case "360p":
-					maxResolution = 360;
-					break;
-				case "240p":
-					maxResolution = 240;
-					break;
-				case "144p":
-					maxResolution = 144;
-					break;
-			}
+		public static Size GetResolution(Size baseResolution, string resolution) {
+			if (resolution == "Source") return baseResolution;
 
+			double maxResolution = getResolutionMinimum(resolution);
 			double scaling = Math.Min(1, maxResolution / Math.Min(baseResolution.Width, baseResolution.Height));
-			return new ScreenSize((int)(baseResolution.Width * scaling), (int)(baseResolution.Height * scaling));
+			return new Size((int)(baseResolution.Width * scaling), (int)(baseResolution.Height * scaling));
+		}
+
+		public static ScreenSize GetClipResolution(ScreenSize baseResolution) {
+			Size resolution = GetResolution(new Size(baseResolution.Width, baseResolution.Height), settings.ClipResolution);
+			return new ScreenSize(resolution.Width, resolution.Height);
+		}
+
+		static double getResolutionMinimum(string resolution) {
+			return resolution switch {
+				"1080p" => 1080,
+				"720p" => 720,
+				"480p" => 480,
+				"360p" => 360,
+				"240p" => 240,
+				"144p" => 144,
+				_ => -1
+			};
+		}
+
+		public static bool ShouldRescale(Size resolution, string scaledResolution) {
+			if (scaledResolution == "Source") return false;
+			double minimum = getResolutionMinimum(scaledResolution);
+			return Math.Min(resolution.Width, resolution.Height) > minimum;
 		}
 
 		public static string GetInputDevice() {

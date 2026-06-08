@@ -68,14 +68,19 @@
                                 <Border HorizontalAlignment="Left" Width="8" Height="20" Background="#FF1F577F" Margin="-20,0,0,0" CornerRadius="2" x:Name="TrimMinBar"/>
                                 <Border HorizontalAlignment="Left" Width="8" Height="20" Background="#FF1F577F" Margin="410,0,-8,0" CornerRadius="2" x:Name="TrimMaxBar"/>
                             </Grid>
-                            <TextBlock Grid.Column="2" x:Name="TrimLength"><Run Text="0:05.00"/></TextBlock>
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Orientation="Horizontal">
+                                <TextBlock x:Name="TrimLength" Text="0:05.00"/>
+                                <Button Template="{StaticResource RoundedButton}" BorderThickness="0" Background="#FF1E2022" x:Name="SettingsButton" Margin="6,0,0,0">
+                                    <Image Source="/Properties/SettingsButton.png"/>
+                                </Button>
+                            </StackPanel>
                         </Grid>
                     </Border>
                     <Button Grid.Column="2" Height="35" Template="{StaticResource RoundedButton}" Margin="10,0,0,0" FontSize="14" BorderThickness="1" BorderBrush="#FF0E2535" Background="#FF245F8A" Foreground="#FFE6E6E6" Content="Save" x:Name="SaveButton"/>
                 </Grid>
             </Grid>
         </Grid>
-        <Border Background="#59000000" Visibility="Collapsed" x:Name="ProcessingOverlay">
+        <Border Background="#80000000" Visibility="Collapsed" x:Name="ProcessingOverlay">
             <StackPanel VerticalAlignment="Center">
                 <TextBlock Foreground="White" VerticalAlignment="Top" HorizontalAlignment="Center" FontSize="20" Text="Processing.."/>
                 <Border HorizontalAlignment="Center" Width="500" VerticalAlignment="Center" Height="7" Background="#FF3C3E40" Grid.Column="1" Margin="0,7,0,0" BorderThickness="1" BorderBrush="#FF282A2C">

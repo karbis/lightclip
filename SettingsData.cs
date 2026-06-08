@@ -93,14 +93,6 @@ namespace lightclip {
 						Type = new KeybindSettingType()
 					},
 					new SettingDefinition() {
-						DisplayName = "Clip editor save mode",
-						Name = "ClipEditorSaveMode",
-						Description = "Changes how saving behaves in the clip editor.\nOverride overides the clip file, Save new creates a new edited video file.",
-						Type = new DropdownSettingType() {
-							Values = ["Override", "Save new"]
-						}
-					},
-					new SettingDefinition() {
 						DisplayName = "Copy clip to clipboard",
 						Name = "CopyToClipboard",
 						Type = new BoolSettingType()
@@ -144,6 +136,14 @@ namespace lightclip {
 						}
 					},
 					new SettingDefinition() {
+						DisplayName = "Capture source",
+						Name = "MonitorInputSource",
+						Description = "Sets which monitor it records.\nAuto will automatically switch between monitors depending on mouse position.",
+						Type = new MonitorInputSettingType(),
+					},
+
+					new SettingDefinition() { DisplayName = "Quality", Name = "Bitrate", Type = new SeperatorSettingType() },
+					new SettingDefinition() {
 						DisplayName = "Framerate",
 						Name = "Framerate",
 						Type = new NumberSettingType() {
@@ -186,12 +186,7 @@ namespace lightclip {
 						},
 						VisibleCheck = () => settings.VideoQualityType == "Quality"
 					},
-					new SettingDefinition() {
-						DisplayName = "Capture source",
-						Name = "MonitorInputSource",
-						Description = "Sets which monitor it records.\nAuto will automatically switch between monitors depending on mouse position.",
-						Type = new MonitorInputSettingType(),
-					},
+
 					new SettingDefinition() { DisplayName = "Encoding", Name = "Bitrate", Type = new SeperatorSettingType() },
 					new SettingDefinition() {
 						DisplayName = "Encoding processor",
@@ -256,6 +251,44 @@ namespace lightclip {
 							SliderMinimum = 0,
 							Unit = "%"
 						}
+					}
+				}
+			},
+			new SettingsCategory() {
+				Name = "Clip editor",
+				List = new List<SettingDefinition>() {
+					new SettingDefinition() {
+						DisplayName = "Save mode",
+						Name = "ClipEditorSaveMode",
+						Description = "Changes how saving behaves in the clip editor.\nOverride overides the clip file, Save new creates a new edited video file.",
+						Type = new DropdownSettingType() {
+							Values = ["Override", "Save new"]
+						}
+					},
+					new SettingDefinition() {
+						DisplayName = "Output resolution",
+						Name = "ClipEditorResolution",
+						Type = new DropdownSettingType() {
+							Values = ["Source", "1080p", "720p", "480p", "360p", "240p", "144p"]
+						}
+					},
+					new SettingDefinition() {
+						DisplayName = "Output volume",
+						Name = "ClipEditorVideoVolume",
+						Description = "Changes the volume of the edited clip.",
+						Type = new SliderSettingType() {
+							Minimum = 0,
+							Maximum = 200,
+							SliderMaximum = 100,
+							SliderMinimum = 0,
+							Unit = "%"
+						}
+					},
+					new SettingDefinition() {
+						DisplayName = "Show crop editor",
+						Description = "Changes whether to show the crop boundaries in the clip editor.",
+						Name = "ClipEditorCropEditor",
+						Type = new BoolSettingType()
 					}
 				}
 			}

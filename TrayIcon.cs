@@ -69,7 +69,7 @@ namespace lightclip {
 				settingsWindow.Focus();
 				return;
 			}
-			settingsWindow = new SettingsWindow(openInfo);
+			settingsWindow = new SettingsWindow((openInfo) ? "Info" : "General");
 			settingsWindow.Show();
 
 			settingsWindow.Closed += (_, _) => {

@@ -106,5 +106,11 @@ namespace lightclip.Windows {
 			string result = await WebView.ExecuteScriptAsync("document.querySelector('video').duration;");
 			return TimeSpan.FromSeconds(Convert.ToDouble(result, CultureInfo.InvariantCulture));
 		}
+
+		public async Task<Size> GetResolution() {
+			string width = await WebView.ExecuteScriptAsync("document.querySelector('video').videoWidth;");
+			string height = await WebView.ExecuteScriptAsync("document.querySelector('video').videoHeight;");
+			return new Size(Convert.ToDouble(width, CultureInfo.InvariantCulture), Convert.ToDouble(height, CultureInfo.InvariantCulture));
+		}
 	}
 }

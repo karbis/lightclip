@@ -286,5 +286,41 @@ namespace lightclip.Properties {
                 this["NotificationDuration"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Source")]
+        public string ClipEditorResolution {
+            get {
+                return ((string)(this["ClipEditorResolution"]));
+            }
+            set {
+                this["ClipEditorResolution"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int ClipEditorVideoVolume {
+            get {
+                return ((int)(this["ClipEditorVideoVolume"]));
+            }
+            set {
+                this["ClipEditorVideoVolume"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ClipEditorCropEditor {
+            get {
+                return ((bool)(this["ClipEditorCropEditor"]));
+            }
+            set {
+                this["ClipEditorCropEditor"] = value;
+            }
+        }
     }
 }

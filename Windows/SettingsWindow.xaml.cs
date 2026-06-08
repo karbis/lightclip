@@ -25,14 +25,20 @@ namespace lightclip {
 		GlobalKeyboardHook hook = null;
 		Dictionary<SettingDefinition, UIElement> settingUiMap = new();
 
-		public SettingsWindow(bool openInfo = false) {
+		public SettingsWindow(string openedCategory = "General") {
 			InitializeComponent();
 
 			foreach (SettingsCategory category in SettingsData.Data) {
 				Button button = CreateCategoryButton(category);
 			}
 			CreateCategoryButton(new SettingsCategory() { Name = "Info" });
-			((Button)SettingCategories.Items[(openInfo) ? SettingCategories.Items.Count - 1 : 0]).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+			int openedIndex = 0;
+			foreach (SettingsCategory category in SettingsData.Data) {
+				if (category.Name == openedCategory) break;
+				openedIndex++;
+			}
+			((Button)SettingCategories.Items[openedIndex]).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
 
 			Properties.Settings.Default.PropertyChanged += propertyChanged;
 		}

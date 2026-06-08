@@ -1,19 +1,10 @@
 ﻿using FFMpegCore;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 using Path = System.IO.Path;
 
@@ -29,6 +20,8 @@ namespace lightclip.Windows {
 		TimeSpan videoDuration = TimeSpan.FromMilliseconds(0.1);
 		private static Properties.Settings settings = Properties.Settings.Default;
 		private static ClipEditorWindow instance;
+		CropPanel cropPanel;
+		SettingsWindow settingsWindow = null;
 
 		public ClipEditorWindow(string path) {
 			if (instance != null) {
@@ -43,11 +36,14 @@ namespace lightclip.Windows {
 
 			Update();
 			EventHandler handler = null;
-			handler = (_, _) => {
-				Task.Run(getVideoDuration);
+			handler = async (_, _) => {
+				_ = Task.Run(getVideoDuration);
 				SetPlaying(false);
 				updateVolume();
 				VideoElement.VideoLoaded -= handler;
+
+				cropPanel = new CropPanel(await VideoElement.GetResolution());
+				((Grid)VideoElement.Parent).Children.Add(cropPanel);
 			};
 			VideoElement.VideoLoaded += handler;
 
@@ -103,6 +99,15 @@ namespace lightclip.Windows {
 				Save();
 			};
 
+			SettingsButton.Click += (_, _) => {
+				if (settingsWindow != null) {
+					settingsWindow.Close();
+				}
+				settingsWindow = new SettingsWindow("Clip editor");
+				settingsWindow.Owner = this;
+				settingsWindow.ShowDialog();
+			};
+
 			bool holdingCtrl = false;
 			PreviewKeyDown += (object _, KeyEventArgs e) => {
 				if (e.Key == Key.Space) {
@@ -123,7 +128,7 @@ namespace lightclip.Windows {
 
 		bool saving = false;
 		public async void Save() {
-			if (saving) return;
+			if (saving || cropPanel == null) return;
 			saving = true;
 
 			ProcessingOverlay.Visibility = Visibility.Visible;
@@ -139,14 +144,33 @@ namespace lightclip.Windows {
 			string saveMode = settings.ClipEditorSaveMode;
 			string tempFile = (saveMode == "Save new") ? $"{fileName}-Edit{fileExtension}" : $"{fileName}.temp{fileExtension}";
 			string finalFile = (saveMode == "Save new") ? tempFile : VideoPath;
+			Rect crop = cropPanel.GetResolutionCrop();
 
 			await FFMpegArguments
 				.FromFileInput(VideoPath)
-				.OutputToFile(tempFile, true, (FFMpegArgumentOptions options) => options
-					.Seek(TimeSpan.FromSeconds(TrimStart))
-					.EndSeek(TimeSpan.FromSeconds(TrimEnd))
-					.WithCustomArgument("-c copy")
-				)
+				.OutputToFile(tempFile, true, (FFMpegArgumentOptions options) => {
+					options.Seek(TimeSpan.FromSeconds(TrimStart))
+						.EndSeek(TimeSpan.FromSeconds(TrimEnd));
+
+					bool applyCrop = crop.Size != cropPanel.Resolution;
+					bool applyResolution = settings.ClipEditorResolution != "Source" && ClipSettings.ShouldRescale(cropPanel.Resolution, settings.ClipEditorResolution);
+					if (applyCrop) {
+						options.Crop((int)crop.Width, (int)crop.Height, (int)crop.Left, (int)crop.Top);
+					}
+					if (applyResolution) {
+						Size size = ClipSettings.GetResolution(cropPanel.Resolution, settings.ClipEditorResolution);
+						options.Resize((int)size.Width, (int)size.Height);
+					}
+					if (!applyCrop && !applyResolution) {
+						options.WithCustomArgument("-c:v copy");
+					}
+
+					if (settings.ClipEditorVideoVolume != 100) {
+						options.WithCustomArgument(FormattableString.Invariant($"-af \"volume={settings.ClipEditorVideoVolume / 100d}\""));
+					} else {
+						options.WithCustomArgument("-c:a copy");
+					}
+				})
 				.NotifyOnProgress((double percent) => Dispatcher.Invoke(() => updateProgressBar(percent / 100d)), TimeSpan.FromSeconds(GetClipLength()))
 				.ProcessAsynchronously();
 
@@ -251,6 +275,7 @@ namespace lightclip.Windows {
 		protected override void OnClosed(EventArgs e) {
 			CompositionTarget.Rendering -= onFrameRendered;
 			VideoElement.Dispose();
+			settingsWindow = null;
 
 			base.OnClosed(e);
 		}
