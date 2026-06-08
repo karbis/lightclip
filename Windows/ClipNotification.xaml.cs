@@ -64,7 +64,7 @@ namespace lightclip {
 		}
 
 		public void StartFadeout() {
-			delay(Properties.Settings.Default.NotificationDuration - 0.5f, () => {
+			delay(Properties.Settings.Default.NotificationDuration, () => {
 				TweenOpacity(0, () => {
 					Close();
 				});
