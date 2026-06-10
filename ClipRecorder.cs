@@ -69,6 +69,7 @@ namespace lightclip {
 				//stream.Dispose(); // should get automatically disposed by the recorder
 
 				Dispatcher.CurrentDispatcher.Invoke(() => {
+					rec.Stop();
 					rec.Dispose();
 					if (stream is VideoDiskStream disk) {
 						disk.CloseHandles();
