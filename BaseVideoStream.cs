@@ -42,10 +42,7 @@ namespace lightclip {
 					break;
 				}
 
-				curChunk.Position = cursor;
-				byte[] sizeArray = new byte[4];
-				curChunk.Read(sizeArray, 0, 4);
-				uint size = BinaryPrimitives.ReadUInt32BigEndian(sizeArray);
+				uint size = getUintAtPosition(curChunk, cursor);
 
 				byte[] typeArray = new byte[4];
 				curChunk.Read(typeArray, 0, 4);
@@ -95,15 +92,8 @@ namespace lightclip {
 		internal void offsetTfhdHeaders(Stream stream, long basePosition) {
 			long cursor = basePosition;
 			while (true) {
-				stream.Position = cursor + 24; // read traf header size
-				byte[] sizeArray = new byte[4];
-				stream.Read(sizeArray, 0, 4);
-				uint size = BinaryPrimitives.ReadUInt32BigEndian(sizeArray);
-
-				stream.Position = cursor + 52; // read tfhd offset value
-				byte[] offsetArray = new byte[4];
-				stream.Read(offsetArray, 0, 4);
-				uint offset = BinaryPrimitives.ReadUInt32BigEndian(offsetArray);
+				uint size = getUintAtPosition(stream, cursor + 24); // read traf header size
+				uint offset = getUintAtPosition(stream, cursor + 52); // read tfhd offset value
 				byte[] newValue = new byte[4];
 				BinaryPrimitives.WriteUInt32BigEndian(newValue, (uint)(offset - deletedChunkOffset));
 				stream.Position = cursor + 52;
@@ -123,11 +113,55 @@ namespace lightclip {
 		}
 
 		internal uint getSampleCount(MemoryStream chunk) {
-			chunk.Position = 72; // sample count in trun box
-			byte[] countArray = new byte[4];
-			chunk.Read(countArray, 0, 4);
-			
-			return BinaryPrimitives.ReadUInt32BigEndian(countArray);
+			return getUintAtPosition(chunk, 72); // sample count in trun box
+		}
+
+		internal int getSyncSample(Stream chunk, uint sampleCount, long offset = 0) {
+			int sample = 0;
+			long cursor = 0;
+			while (sample < sampleCount) { // iterate over sample data in trun box
+				uint flags = getUintAtPosition(chunk, cursor + 88 + offset);
+
+				// sync frame
+				if ((flags & 0x00010000) == 0) {
+					return sample;
+				}
+
+				cursor += 16;
+				sample++;
+			}
+
+			return -1;
+		}
+
+		public uint GetNearestSyncSample(Stream stream, long goalSample) {
+			long cursor = Header.Length;
+			long sampleCount = 0;
+			long nearestSyncSample = 0;
+
+			while (cursor < stream.Length && sampleCount < goalSample) {
+				uint moofSize = getUintAtPosition(stream, cursor);
+				uint chunkSamples = getUintAtPosition(stream, cursor + 72);
+
+				int syncSample = getSyncSample(stream, chunkSamples, cursor);
+				if (syncSample != -1) {
+					nearestSyncSample = sampleCount + syncSample;
+				}
+				sampleCount += chunkSamples;
+
+				uint mdatSize = getUintAtPosition(stream, cursor + moofSize);
+				cursor += moofSize + mdatSize;
+			}
+
+			stream.Position = 0;
+			return (uint)nearestSyncSample;
+		}
+
+		internal uint getUintAtPosition(Stream chunk, long pos) {
+			chunk.Position = pos;
+			byte[] uintArray = new byte[4];
+			chunk.Read(uintArray, 0, 4);
+			return BinaryPrimitives.ReadUInt32BigEndian(uintArray);
 		}
 
 		protected override void Dispose(bool disposing) {

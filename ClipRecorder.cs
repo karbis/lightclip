@@ -144,11 +144,16 @@ namespace lightclip {
 			videoStream.Position = 0;
 
 			Debug.WriteLine("ffmpeg started");
-			//File.WriteAllBytes(path, videoStream.ToArray());
+			/*if (videoStream is MemoryStream memory) {
+				File.WriteAllBytes("memory.bin", memory.ToArray());
+			}*/
+			long goalSample = Math.Max(0, stream.FrameCount - settings.ClipLength * settings.Framerate);
+			uint nearestSample = stream.GetNearestSyncSample(videoStream, goalSample);
+
 			await FFMpegArguments
 				.FromPipeInput(new StreamPipeSource(videoStream))
 				.OutputToFile(path, true, (FFMpegArgumentOptions options) => options.WithCustomArgument("-c copy")
-					.Seek(TimeSpan.FromSeconds(Math.Max(0, stream.FrameCount / (double)settings.Framerate - settings.ClipLength))))
+					.Seek(TimeSpan.FromSeconds(nearestSample / (double)settings.Framerate)))
 				.ProcessAsynchronously();
 
 			Debug.WriteLine("video written");

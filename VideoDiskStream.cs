@@ -29,13 +29,7 @@ namespace lightclip {
 		}
 
 		internal override void WriteChunk(MemoryStream chunk, uint sampleSize) {
-			chunk.Position = 0;
-			chunk.CopyTo(curBuffer, BUFFER_SIZE);
-			curBuffer.Flush();
-			sampleCounts[curBuffer] += sampleSize;
-			curSampleCount += sampleSize;
-
-			if (curSampleCount >= MaxFrameCount) {
+			if (curSampleCount >= MaxFrameCount && getSyncSample(chunk, sampleSize) != -1) {
 				curSampleCount = 0;
 
 				curBuffer = getOtherBuffer();
@@ -46,6 +40,12 @@ namespace lightclip {
 				curBuffer.Flush();
 				sampleCounts[curBuffer] = 0;
 			}
+
+			chunk.Position = 0;
+			chunk.CopyTo(curBuffer, BUFFER_SIZE);
+			curBuffer.Flush();
+			sampleCounts[curBuffer] += sampleSize;
+			curSampleCount += sampleSize;
 		}
 
 		public override FileStream GetFinalStream() {

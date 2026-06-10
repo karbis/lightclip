@@ -266,7 +266,7 @@ namespace lightclip {
 					dialog.Multiselect = false;
 					dialog.CheckFileExists = true;
 					dialog.CheckPathExists = true;
-					dialog.Filter = "Video files (*.mp4, *.mov, *.webm)|*.mp4;*.mov;*.webm";
+					dialog.Filter = "Video files (*.mp4, *.webm)|*.mp4;*.webm";
 					dialog.DefaultDirectory = Properties.Settings.Default.OutputDirectory;
 
 					if (dialog.ShowDialog() == true) {
