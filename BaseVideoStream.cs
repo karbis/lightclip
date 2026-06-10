@@ -139,7 +139,7 @@ namespace lightclip {
 			long sampleCount = 0;
 			long nearestSyncSample = 0;
 
-			while (cursor < stream.Length && sampleCount < goalSample) {
+			while (cursor < stream.Length && (sampleCount < goalSample || sampleCount == 0)) {
 				uint moofSize = getUintAtPosition(stream, cursor);
 				uint chunkSamples = getUintAtPosition(stream, cursor + 72);
 
